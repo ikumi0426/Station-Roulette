@@ -4037,7 +4037,7 @@
                             let lineLogoHtml = `<div style="display: flex; gap: 2px; margin-right: 6px; flex-shrink: 0;">`;
                             lineLogoCodes.forEach(code => {
                                 // 各画像を固定幅(28px)の中央に配置
-                                lineLogoHtml += `<div style="flex: 0 0 28px; display: flex; justify-content: center;"><img src="images/${code}.png" style="height: 24px; max-width: 100%; object-fit: contain;" onerror="this.style.display='none'"></div>`;
+                                lineLogoHtml += `<div style="flex: 0 0 28px; display: flex; justify-content: center;"><img src="Images/${code}.png" style="height: 24px; max-width: 100%; object-fit: contain;" onerror="this.style.display='none'"></div>`;
                             });
                             lineLogoHtml += `</div>`;
 
@@ -4045,7 +4045,7 @@
                             let numberingHtml = `<div style="display: flex; gap: 2px; margin-right: 4px; flex-shrink: 0;">`;
                             targetData.ids.forEach(id => {
                                 // 各画像を固定幅(32px)の中央に配置
-                                numberingHtml += `<div style="flex: 0 0 32px; display: flex; justify-content: center;"><img src="images/${id.trim()}.png" style="height: 24px; max-width: none; object-fit: contain;" onerror="this.style.display='none'"></div>`;
+                                numberingHtml += `<div style="flex: 0 0 32px; display: flex; justify-content: center;"><img src="Images/${id.trim()}.png" style="height: 24px; max-width: none; object-fit: contain;" onerror="this.style.display='none'"></div>`;
                             });
                             numberingHtml += `</div>`;
 
@@ -4337,16 +4337,16 @@
                 const code = id.split("-")[0]; 
                 let sClass = "station-logo";
                 if (company === "JR東日本" || code.startsWith("J")) sClass += " is-jr";
-                stationImageDatas.push({ src: `images/${id}.png`, className: sClass });
+                stationImageDatas.push({ src: `Images/${id}.png`, className: sClass });
             });
 
             const lineImageDatas = [];
             if (targetLine === "上野東京ライン") {
                 ["JT", "JU", "JJ"].forEach(logoCode => {
-                    lineImageDatas.push({ src: `images/${logoCode}.png`, className: "line-logo" });
+                    lineImageDatas.push({ src: `Images/${logoCode}.png`, className: "line-logo" });
                 });
             } else {
-                lineImageDatas.push({ src: `images/${colorCode}.png`, className: "line-logo" });
+                lineImageDatas.push({ src: `Images/${colorCode}.png`, className: "line-logo" });
             }
 
             updateImages(stationImgContainer, stationImageDatas);
@@ -4764,7 +4764,7 @@
                     prevIconsContainer.innerHTML = "";
                     prevData.ids.forEach(id => {
                         const img = document.createElement("img");
-                        img.src = `images/${id.trim()}.png`;
+                        img.src = `Images/${id.trim()}.png`;
                         img.onerror = function() { this.style.display = 'none'; };
                         prevIconsContainer.appendChild(img);
                     });
@@ -4784,7 +4784,7 @@
                     nextIconsContainer.innerHTML = "";
                     nextData.ids.forEach(id => {
                         const img = document.createElement("img");
-                        img.src = `images/${id.trim()}.png`;
+                        img.src = `Images/${id.trim()}.png`;
                         img.onerror = function() { this.style.display = 'none'; };
                         nextIconsContainer.appendChild(img);
                     });
@@ -4983,7 +4983,7 @@
                 // ★要望：全てのナンバリング画像を生成する
                 let imgHtml = "";
                 ids.forEach(id => {
-                    imgHtml += `<img src="images/${id.trim()}.png" class="search-item-img" onerror="this.style.display='none'">`;
+                    imgHtml += `<img src="Images/${id.trim()}.png" class="search-item-img" onerror="this.style.display='none'">`;
                 });
 
                 const firstId = ids[0].trim();
