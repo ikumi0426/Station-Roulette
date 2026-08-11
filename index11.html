@@ -323,6 +323,19 @@
             box-sizing: border-box;
             opacity: 0.6;
         }
+        .transfer-details {
+            width: 100%;
+            text-align: left;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #444;
+        }
+        body.light-mode .transfer-details {
+            background-color: #f9f9f9;
+            border-color: #ddd;
+        }
         body.light-mode .melody-none {
             border-color: #ddd;
             background-color: #f9f9f9;
@@ -485,6 +498,29 @@
             margin-left: 8px;
         }
 
+        /* ==============================
+           ★ ルーレットの旅モード（警告文）
+           ============================== */
+        #journey-advice-container {
+            width: 100%;
+            margin-top: 15px;
+        }
+        .journey-advice {
+            background-color: rgba(255, 193, 7, 0.15);
+            border-left: 4px solid #ffc107;
+            color: #ffd54f;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: left;
+            line-height: 1.4;
+        }
+        body.light-mode .journey-advice {
+            background-color: rgba(255, 152, 0, 0.1);
+            color: #e65100;
+        }
+
     </style>
 </head>
 <body>
@@ -510,6 +546,28 @@
             </div>
         </button>
 
+        <!-- 前の駅ボタン（2段目：都庁前用） -->
+        <button id="prev-station-btn-2" class="nav-btn prev-btn" style="display: none; top: 65px;">
+            <div class="nav-title">◀ 前の駅</div>
+            <div class="nav-content">
+                <div id="prevIcons-2" class="nav-icons-container"></div>
+                <div class="nav-name-wrapper">
+                    <span id="prevName-2" class="nav-name"></span>
+                </div>
+            </div>
+        </button>
+
+        <!-- 次の駅ボタン（2段目：都庁前用） -->
+        <button id="next-station-btn-2" class="nav-btn next-btn" style="display: none; top: 65px;">
+            <div class="nav-title">次の駅 ▶</div>
+            <div class="nav-content">
+                <div id="nextIcons-2" class="nav-icons-container"></div>
+                <div class="nav-name-wrapper">
+                    <span id="nextName-2" class="nav-name"></span>
+                </div>
+            </div>
+        </button>
+
         <div id="station-img-container"></div>
         <div id="station-text-container">
             <div id="station-id-text"></div>
@@ -520,7 +578,9 @@
             <div id="line-logos-container"></div> <div id="line-name">モードを選んでスタート！</div>
         </div>
         <div id="company-name"></div>
+        <div id="journey-advice-container"></div>
         <div id="melody-container" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px; width: 100%;"></div>
+        <div id="transfer-container" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px; width: 100%;"></div>
     </div>
 
     <select id="mode-select">
@@ -550,6 +610,22 @@
         </label>
     </div>
 
+    <div class="toggle-container">
+        <span>乗換案内ボタン常時表示</span>
+        <label class="switch">
+            <input type="checkbox" id="transfer-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="toggle-container">
+        <span>ルーレットの旅モード</span>
+        <label class="switch">
+            <input type="checkbox" id="journey-mode-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+
     <div class="volume-container">
         <button id="mute-btn" class="mute-btn">🔉</button>
         <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="0.5">
@@ -571,7 +647,7 @@
             "JU-01 東京 (宇都宮線)","JU-02 上野 (宇都宮線)","JU-03 尾久 (宇都宮線)","JU-04 赤羽 (宇都宮線)",
             "JU-01 東京 (高崎線)","JU-02 上野 (高崎線)","JU-03 尾久 (高崎線)","JU-04 赤羽 (高崎線)",
             "JJ-01 上野","JJ-02 日暮里","JJ-03 三河島","JJ-04 南千住","JJ-05 北千住",
-            "JL-19 綾瀬","JL-20 亀有","JL-21 金町",
+            "C-18 北千住（常磐線各駅停車）","JL-19 綾瀬","JL-20 亀有","JL-21 金町",
             "JT-01,JU-01 東京 （上野東京ライン）","JU-02,JJ-01 上野 （上野東京ライン）",
             "JC-01 東京","JC-02 神田","JC-03 御茶ノ水","JC-04 四ツ谷","JC-05 新宿","JC-06 中野","JC-07 高円寺","JC-08 阿佐ケ谷","JC-09 荻窪","JC-10 西荻窪",
             "JO-16 西大井 (横須賀線)","JO-17 品川 (横須賀線)","JO-18 新橋 (横須賀線)","JO-19 東京 (横須賀線)",
@@ -587,7 +663,7 @@
             "M-01 荻窪","M-02 南阿佐ケ谷","M-03 新高円寺","M-04 東高円寺","M-05 新中野","Mb-05 中野新橋 (丸ノ内線方南町支線)","Mb-04 中野富士見町 (丸ノ内線方南町支線)","Mb-03 方南町 (丸ノ内線方南町支線)","M-06 中野坂上 (丸ノ内線)","M-06 中野坂上 (丸ノ内線方南町支線)","M-07 西新宿","M-08 新宿","M-09 新宿三丁目","M-10 新宿御苑前","M-11 四谷三丁目","M-12 四ツ谷","M-13 赤坂見附","M-14 国会議事堂前","M-15 霞ケ関","M-16 銀座","M-17 東京","M-18 大手町","M-19 淡路町","M-20 御茶ノ水","M-21 本郷三丁目","M-22 後楽園","M-23 茗荷谷","M-24 新大塚","M-25 池袋",
             "H-01 中目黒","H-02 恵比寿","H-03 広尾","H-04 六本木","H-05 神谷町","H-06 虎ノ門ヒルズ","H-07 霞ケ関","H-08 日比谷","H-09 銀座","H-10 東銀座","H-11 築地","H-12 八丁堀","H-13 茅場町","H-14 人形町","H-15 小伝馬町","H-16 秋葉原","H-17 仲御徒町","H-18 上野","H-19 入谷","H-20 三ノ輪","H-21 南千住","H-22 北千住",
             "T-01 中野","T-02 落合","T-03 高田馬場","T-04 早稲田","T-05 神楽坂","T-06 飯田橋","T-07 九段下","T-08 竹橋","T-09 大手町","T-10 日本橋","T-11 茅場町","T-12 門前仲町","T-13 木場","T-14 東陽町","T-15 南砂町","T-16 西葛西","T-17 葛西",
-            "C-01 代々木上原","C-02 代々木公園","C-03 明治神宮前〈原宿〉","C-04 表参道","C-05 乃木坂","C-06 赤坂","C-07 国会議事堂前","C-08 霞ケ関","C-09 日比谷","C-10 二重橋前〈丸の内〉","C-11 大手町","C-12 新御茶ノ水","C-13 湯島","C-14 根津","C-15 千駄木","C-16 西日暮里","C-17 町屋","C-18 北千住","C-19 綾瀬","C-20 北綾瀬",
+            "C-01 代々木上原","C-02 代々木公園","C-03 明治神宮前〈原宿〉","C-04 表参道","C-05 乃木坂","C-06 赤坂","C-07 国会議事堂前","C-08 霞ケ関","C-09 日比谷","C-10 二重橋前〈丸の内〉","C-11 大手町","C-12 新御茶ノ水","C-13 湯島","C-14 根津","C-15 千駄木","C-16 西日暮里","C-17 町屋","C-18 北千住（千代田線）","C-19 綾瀬","C-20 北綾瀬",
             "Y-02 地下鉄成増","Y-03 地下鉄赤塚","Y-04 平和台","Y-05 氷川台","Y-06 小竹向原","Y-07 千川","Y-08 要町","Y-09 池袋","Y-10 東池袋","Y-11 護国寺","Y-12 江戸川橋","Y-13 飯田橋","Y-14 市ケ谷","Y-15 麴町","Y-16 永田町","Y-17 桜田門","Y-18 有楽町","Y-19 銀座一丁目","Y-20 新富町","Y-21 月島","Y-22 豊洲","Y-23 辰巳","Y-24 新木場",
             "Z-01 渋谷","Z-02 表参道","Z-03 青山一丁目","Z-04 永田町","Z-05 半蔵門","Z-06 九段下","Z-07 神保町","Z-08 大手町","Z-09 三越前","Z-10 水天宮前","Z-11 清澄白河","Z-12 住吉","Z-13 錦糸町","Z-14 押上〈スカイツリー前〉",
             "N-01 目黒","N-02 白金台","N-03 白金高輪","N-04 麻布十番","N-05 六本木一丁目","N-06 溜池山王","N-07 永田町","N-08 四ツ谷","N-09 市ケ谷","N-10 飯田橋","N-11 後楽園","N-12 東大前","N-13 本駒込","N-14 駒込","N-15 西ケ原","N-16 王子","N-17 王子神谷","N-18 志茂","N-19 赤羽岩淵",
@@ -640,7 +716,8 @@
             "MO-01 モノレール浜松町","MO-02 天王洲アイル","MO-03 大井競馬場前","MO-04 流通センター","MO-05 昭和島","MO-06 整備場","MO-07 天空橋","MO-08 羽田空港第３ターミナル","MO-09 新整備場","MO-10 羽田空港第１ターミナル","MO-11 羽田空港第２ターミナル",
             "U-01 新橋","U-02 汐留","U-03 竹芝","U-04 日の出","U-05 芝浦ふ頭","U-06 お台場海浜公園","U-07 台場","U-08 東京国際クルーズターミナル","U-09 テレコムセンター","U-10 青海","U-11 東京ビッグサイト","U-12 有明","U-13 有明テニスの森","U-14 市場前","U-15 新豊洲","U-16 豊洲",
             "R-01 新木場","R-02 東雲","R-03 国際展示場","R-04 東京テレポート","R-05 天王洲アイル","R-06 品川シーサイド","R-07 大井町","R-08 大崎",
-            "TX-01 秋葉原","TX-02 新御徒町","TX-03 浅草","TX-04 南千住","TX-05 北千住","TX-06 青井","TX-07 六町"
+            "TX-01 秋葉原","TX-02 新御徒町","TX-03 浅草","TX-04 南千住","TX-05 北千住","TX-06 青井","TX-07 六町",
+            "SR-19 赤羽岩淵"
         ];
 
         const lineInfo = {
@@ -688,12 +765,14 @@
             "KO": ["京王電鉄", "京王線"],
             "IN": ["京王電鉄", "井の頭線"],
             "KS": ["京成電鉄", "京成本線"],
+            "KS_SKYA": ["京成電鉄", "成田スカイアクセス線"],
             "HS": ["北総鉄道", "北総線"],
             "KK": ["京浜急行電鉄", "京急本線"],
             "MO": ["東京モノレール", "羽田空港線"],
             "U": ["ゆりかもめ", "ゆりかもめ"],
             "R": ["東京臨海高速鉄道", "りんかい線"],
-            "TX": ["首都圏新都市鉄道", "つくばエクスプレス"]
+            "TX": ["首都圏新都市鉄道", "つくばエクスプレス"],
+            "SR": ["埼玉高速鉄道", "埼玉スタジアム線"]
         };
 
         // =====================================
@@ -714,7 +793,8 @@
             "東京臨海高速鉄道": "", // りんかい線
             "首都圏新都市鉄道": "", // つくばエクスプレス
             "ゆりかもめ": "",       // ゆりかもめ
-            "東京モノレール": ""    // 東京モノレール
+            "東京モノレール": "東京モノレール",    // 東京モノレール
+            "埼玉高速鉄道": "埼玉高速鉄道"
         };
 
         // =====================================
@@ -1283,6 +1363,7 @@
 
             // --- 京成・北総・京急 ---
             "KS": "#0050b1", // 京成本線 (ブルー)
+            "KS_SKYA": "#EE7A00", // 成田スカイアクセス線 (オレンジ)
             "HS": "#00b5e2", // 北総線 (ライトブルー)
             "KK": "#00b7ce", // 京急本線 (水色 ※ナンバリング色)
 
@@ -1290,7 +1371,26 @@
             "MO": "#0068b7", // 東京モノレール (ブルー)
             "U": "#1d2088",  // ゆりかもめ (ブルー)
             "R": "#0055a4",  // りんかい線 (ディープブルー)
-            "TX": "#e60012"  // つくばエクスプレス (レッド)
+            "TX": "#e60012",  // つくばエクスプレス (レッド)
+            "SR": "#395ea3"  // 埼玉高速鉄道
+        };
+
+        // =====================================
+        // ★ ルーレットの旅モード 警告文データ（真のトラップ駅のみ厳選）
+        // =====================================
+        const journeyAdvices = {
+            // 中央線快速（JC）のトラップ：土休日は完全通過
+            "JC-07": "土休日ダイヤの日は、当駅に停車しないため、中央・総武線各駅停車の高円寺駅に向かってください。", // 高円寺
+            "JC-08": "土休日ダイヤの日は、当駅に停車しないため、中央・総武線各駅停車の阿佐ケ谷駅に向かってください。", // 阿佐ケ谷
+            "JC-10": "土休日ダイヤの日は、当駅に停車しないため、中央・総武線各駅停車の西荻窪駅に向かってください。", // 西荻窪
+            
+            // 京浜東北線（JK）のトラップ：日中（10:30〜15:30頃）は完全通過
+            "JK-24": "日中時間帯（10:30〜15:30頃）は、当駅に停車しないため、山手線の新橋駅に向かってください。", // 新橋
+            "JK-25": "日中時間帯（10:30〜15:30頃）は、当駅に停車しないため、山手線の有楽町駅に向かってください。", // 有楽町
+            "JK-29": "平日ダイヤの日の日中時間帯（10:30〜15:30頃）は、当駅に停車しないため、山手線の御徒町駅に向かってください。", // 御徒町
+            "JK-31": "日中時間帯（10:30〜15:30頃）は、当駅に停車しないため、山手線の鶯谷駅に向かってください。", // 鶯谷
+            "JK-32": "日中時間帯（10:30〜15:30頃）は、当駅に停車しないため、山手線の日暮里駅に向かってください。", // 日暮里
+            "JK-33": "日中時間帯（10:30〜15:30頃）は、当駅に停車しないため、山手線の西日暮里駅に向かってください。", // 西日暮里
         };
 
         // =====================================
@@ -1517,42 +1617,42 @@
                 { track: "2番線", direction: "浦和・大宮方面", title: "春（トレモロ）", file: "sounds/春（トレモロ）.mp3", type: 0 }
             ],
             "JT-01": [ // 東京
-                { track: "7番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常盤線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
-                { track: "8番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常盤線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
+                { track: "7番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常磐線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
+                { track: "8番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常磐線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
                 { track: "9番線", direction: "品川・横浜・熱海・沼津・伊東方面", title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 },
                 { track: "10番線", direction: "品川・横浜・熱海・沼津・伊東方面", title: "JRE-IKST-021-02", file: "sounds/JRE-IKST-021-02.mp3", type: 0 }
             ],
             "JT-02": [ // 新橋
                 { track: "1番線", direction: "品川・横浜・熱海・沼津・伊東方面", title: "JRE-IKST-021-02", file: "sounds/JRE-IKST-021-02.mp3", type: 0 },
-                { track: "2番線", direction: ["上野東京ライン(宇都宮線) 東京・大宮・宇都宮方面","上野東京ライン(高崎線) 東京・大宮・高崎・前橋方面","上野東京ライン(常盤線) 東京・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 }
+                { track: "2番線", direction: ["上野東京ライン(宇都宮線) 東京・大宮・宇都宮方面","上野東京ライン(高崎線) 東京・大宮・高崎・前橋方面","上野東京ライン(常磐線) 東京・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 }
             ],
             "JT-03": [ // 品川
                 { track: "6番線", direction: ["上野東京ライン(宇都宮線) 東京・大宮・宇都宮方面","上野東京ライン(高崎線) 東京・大宮・高崎・前橋方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
                 { track: "6番線", direction: "[通常不使用・使用実績なし] 横浜・小田原・熱海・沼津・伊東方面", title: "JRE-IKST-021-04", file: "sounds/JRE-IKST-021-04.mp3", type: 0 },
                 { track: "7番線", direction: ["上野東京ライン(宇都宮線) 東京・大宮・宇都宮方面","上野東京ライン(高崎線) 東京・大宮・高崎・前橋方面"], title: "JRE-IKST-021-05", file: "sounds/JRE-IKST-021-05.mp3", type: 0 },
                 { track: "8番線", direction: "臨時ホーム", title: "JRE-IKST-021-03", file: "sounds/JRE-IKST-021-03.mp3", type: 0 },
-                { track: "9番線", direction: ["上野東京ライン(常盤線(特急)) 水戸・いわき・仙台方面","横須賀線 横浜・大船・逗子・久里浜方面"], title: "SF10-68", file: "sounds/SF10-68.mp3", type: 0 },
-                { track: "10番線", direction: "上野東京ライン(常盤線) 東京・取手・水戸・高萩・成田方面", title: "ナイスガイ！", file: "sounds/ナイスガイ！.mp3", type: 1 },
-                { track: "11番線", direction: "上野東京ライン(常盤線) 東京・取手・水戸・高萩・成田方面", title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 },
+                { track: "9番線", direction: ["上野東京ライン(常磐線(特急)) 水戸・いわき・仙台方面","横須賀線 横浜・大船・逗子・久里浜方面"], title: "SF10-68", file: "sounds/SF10-68.mp3", type: 0 },
+                { track: "10番線", direction: "上野東京ライン(常磐線) 東京・取手・水戸・高萩・成田方面", title: "ナイスガイ！", file: "sounds/ナイスガイ！.mp3", type: 1 },
+                { track: "11番線", direction: "上野東京ライン(常磐線) 東京・取手・水戸・高萩・成田方面", title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 },
                 { track: "11番線", direction: "横浜・小田原・熱海・沼津・伊東方面", title: "JRE-IKST-021-06", file: "sounds/JRE-IKST-021-06.mp3", type: 0 },
                 { track: "12番線", direction: "横浜・小田原・熱海・沼津・伊東方面", title: "JRE-IKST-021-02", file: "sounds/JRE-IKST-021-02.mp3", type: 0 }
             ],
             "JU-01": [ // 東京
-                { track: "7番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常盤線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
-                { track: "8番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常盤線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
+                { track: "7番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常磐線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
+                { track: "8番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常磐線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
                 { track: "9番線", direction: "品川・横浜・熱海・沼津・伊東方面", title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 },
                 { track: "10番線", direction: "品川・横浜・熱海・沼津・伊東方面", title: "JRE-IKST-021-02", file: "sounds/JRE-IKST-021-02.mp3", type: 0 }
             ],
             "JU-02": [ // 上野
                 { track: "5番線", direction: ["宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
-                { track: "6番線", direction: ["常盤線 松戸・取手・水戸・高萩・成田方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
+                { track: "6番線", direction: ["常磐線 松戸・取手・水戸・高萩・成田方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
                 { track: "7番線", direction: ["上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面","高崎線 大宮・高崎方面"], title: "JRE-IKST-021-02", file: "sounds/JRE-IKST-021-02.mp3", type: 0 },
-                { track: "8番線", direction: ["常盤線(特急) 水戸・いわき・仙台方面","上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面"], title: "JRE-IKST-020-01", file: "sounds/JRE-IKST-020-01.mp3", type: 0 },
+                { track: "8番線", direction: ["常磐線(特急) 水戸・いわき・仙台方面","上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面"], title: "JRE-IKST-020-01", file: "sounds/JRE-IKST-020-01.mp3", type: 0 },
                 { track: "13番線", direction: ["宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎方面"], title: "JRE-IKST-021-03", file: "sounds/JRE-IKST-021-03.mp3", type: 0 },
                 { track: "14番線", direction: ["宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎方面"], title: "ROMベル 高音Ver.", file: "sounds/ROMベル 高音.mp3", type: 0 },
                 { track: "15番線", direction: ["宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎方面"], title: "ROMベル 高音Ver.", file: "sounds/ROMベル 高音.mp3", type: 0 },
-                { track: "16番線", direction: ["常盤線 松戸・取手・水戸方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 },
-                { track: "17番線", direction: ["常盤線 松戸・取手・水戸方面","高崎線 大宮・籠原方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 }
+                { track: "16番線", direction: ["常磐線 松戸・取手・水戸方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 },
+                { track: "17番線", direction: ["常磐線 松戸・取手・水戸方面","高崎線 大宮・籠原方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 }
             ],
             "JU-03": [ // 尾久
                 { track: "1番線", direction: "上野東京ライン(東海道線) 上野・東京・横浜・熱海・沼津・伊東方面", title: "あざみ野 V2", file: "sounds/あざみ野 V2.mp3", type: 0 },
@@ -1563,14 +1663,14 @@
                 { track: "4番線", direction: ["宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "高原", file: "sounds/高原.mp3", type: 1 }
             ],
             "JJ-01": [ // 上野
-                { track: "6番線", direction: ["常盤線 松戸・取手・水戸・高萩・成田方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
-                { track: "8番線", direction: ["常盤線(特急) 水戸・いわき・仙台方面","上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面"], title: "JRE-IKST-020-01", file: "sounds/JRE-IKST-020-01.mp3", type: 0 },
-                { track: "9番線", direction: ["常盤線 松戸・取手・水戸・高萩・成田方面","上野東京ライン(東海道線) 東京・品川方面"], title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 },
+                { track: "6番線", direction: ["常磐線 松戸・取手・水戸・高萩・成田方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
+                { track: "8番線", direction: ["常磐線(特急) 水戸・いわき・仙台方面","上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面"], title: "JRE-IKST-020-01", file: "sounds/JRE-IKST-020-01.mp3", type: 0 },
+                { track: "9番線", direction: ["常磐線 松戸・取手・水戸・高萩・成田方面","上野東京ライン(東海道線) 東京・品川方面"], title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 },
                 { track: "10番線", direction: "松戸・取手・勝田・成田方面", title: "JRE-IKST-005-02", file: "sounds/JRE-IKST-005-02.mp3", type: 0 },
                 { track: "11番線", direction: "松戸・取手・勝田・成田方面", title: "JRE-IKST-020-02", file: "sounds/JRE-IKST-020-02.mp3", type: 0 },
                 { track: "12番線", direction: "松戸・取手・勝田・成田方面", title: "JRE-IKST-020-02", file: "sounds/JRE-IKST-020-02.mp3", type: 0 },
-                { track: "16番線", direction: ["常盤線 松戸・取手・水戸方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 },
-                { track: "17番線", direction: ["常盤線 松戸・取手・水戸方面","高崎線 大宮・籠原方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 }
+                { track: "16番線", direction: ["常磐線 松戸・取手・水戸方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 },
+                { track: "17番線", direction: ["常磐線 松戸・取手・水戸方面","高崎線 大宮・籠原方面"], title: "あゝ上野駅", file: "sounds/あゝ上野駅.mp3", type: 1 }
             ],
             "JJ-02": [ // 日暮里
                 { track: "3番線", direction: "上野東京ライン(東海道線) 上野・東京・品川方面", title: "Sunrise", file: "sounds/Sunrise.mp3", type: 0 },
@@ -1593,8 +1693,8 @@
             "JL-19": [ // 綾瀬
                 { track: "1番線", direction: "東京メトロ千代田線 北千住・西日暮里・代々木上原・伊勢原・唐木田方面", title: "閃緑", file: "sounds/C-19-1.mp3", type: 1 },
                 { track: "2番線", direction: "東京メトロ千代田線 北千住・西日暮里・代々木上原・伊勢原・唐木田方面", title: "市松模様", file: "sounds/C-19-2.mp3", type: 1 },
-                { track: "3番線", direction: ["JR常盤線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "雨が上がったよ", file: "sounds/C-19-3.mp3", type: 1 },
-                { track: "4番線", direction: ["JR常盤線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "プリティ・タウン", file: "sounds/C-19-4.mp3", type: 1 }                
+                { track: "3番線", direction: ["JR常磐線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "雨が上がったよ", file: "sounds/C-19-3.mp3", type: 1 },
+                { track: "4番線", direction: ["JR常磐線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "プリティ・タウン", file: "sounds/C-19-4.mp3", type: 1 }                
             ],
             "JL-20": [ // 亀有
                 { track: "1番線", direction: "松戸・我孫子・取手方面", title: "", file: "", type: null },
@@ -1605,17 +1705,17 @@
                 { track: "2番線", direction: "綾瀬・代々木上原・伊勢原・唐木田方面", title: "", file: "", type: null }                
             ],
             "JT-01,JU-01": [ // 東京
-                { track: "7番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常盤線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
-                { track: "8番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常盤線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
+                { track: "7番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常磐線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
+                { track: "8番線", direction: ["上野東京ライン(宇都宮線) 上野・大宮・宇都宮方面","上野東京ライン(高崎線) 上野・大宮・高崎・前橋方面","上野東京ライン(常磐線) 上野・取手・水戸・高萩・成田方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
                 { track: "9番線", direction: "東海道線 品川・横浜・熱海・沼津・伊東方面", title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 },
                 { track: "10番線", direction: "東海道線 品川・横浜・熱海・沼津・伊東方面", title: "JRE-IKST-021-02", file: "sounds/JRE-IKST-021-02.mp3", type: 0 }
             ],
             "JU-02,JJ-01": [ // 上野
                 { track: "5番線", direction: ["宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-021-01", file: "sounds/JRE-IKST-021-01.mp3", type: 0 },
-                { track: "6番線", direction: ["常盤線 松戸・取手・水戸・高萩・成田方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
+                { track: "6番線", direction: ["常磐線 松戸・取手・水戸・高萩・成田方面","宇都宮線 大宮・宇都宮方面","高崎線 大宮・高崎・前橋方面"], title: "JRE-IKST-013-02", file: "sounds/JRE-IKST-013-02.mp3", type: 0 },
                 { track: "7番線", direction: ["上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面","高崎線 大宮・高崎方面"], title: "JRE-IKST-021-02", file: "sounds/JRE-IKST-021-02.mp3", type: 0 },
-                { track: "8番線", direction: ["常盤線(特急) 水戸・いわき・仙台方面","上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面"], title: "JRE-IKST-020-01", file: "sounds/JRE-IKST-020-01.mp3", type: 0 },
-                { track: "9番線", direction: ["常盤線 松戸・取手・水戸・高萩・成田方面","上野東京ライン(東海道線) 東京・品川方面"], title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 }
+                { track: "8番線", direction: ["常磐線(特急) 水戸・いわき・仙台方面","上野東京ライン(東海道線) 東京・横浜・熱海・沼津・伊東方面"], title: "JRE-IKST-020-01", file: "sounds/JRE-IKST-020-01.mp3", type: 0 },
+                { track: "9番線", direction: ["常磐線 松戸・取手・水戸・高萩・成田方面","上野東京ライン(東海道線) 東京・品川方面"], title: "JRE-IKST-013-01", file: "sounds/JRE-IKST-013-01.mp3", type: 0 }
             ],
             "JC-01": [ // 東京
                 { track: "1番線", direction: "新宿・立川・高尾・大月・河口湖・青梅方面", title: "JRE-IKST-016-02", file: "sounds/JRE-IKST-016-02.mp3", type: 0 },
@@ -1667,7 +1767,7 @@
                 { track: "2番線", direction: ["横須賀線 品川・東京・千葉・君津・上総一ノ宮・成田空港方面","埼京線 大崎・新宿・大宮・川越方面","湘南新宿ライン(宇都宮線) 大崎・新宿・大宮・宇都宮方面"], title: "JRE-IKST-015-02", file: "sounds/JRE-IKST-015-02.mp3", type: 0 }
             ],
             "JO-17": [ // 品川
-                { track: "9番線", direction: ["上野東京ライン(常盤線(特急)) 水戸・いわき・仙台方面","横須賀線 横浜・大船・逗子・久里浜方面"], title: "SF10-68", file: "sounds/SF10-68.mp3", type: 0 },
+                { track: "9番線", direction: ["上野東京ライン(常磐線(特急)) 水戸・いわき・仙台方面","横須賀線 横浜・大船・逗子・久里浜方面"], title: "SF10-68", file: "sounds/SF10-68.mp3", type: 0 },
                 { track: "13番線", direction: "東京・船橋・千葉・君津・上総一ノ宮・成田空港方面", title: "せせらぎ（鐘強調）", file: "sounds/せせらぎ（鐘強調）.mp3", type: 0 },
                 { track: "14番線", direction: ["東京・船橋・千葉・君津・上総一ノ宮・成田空港方面","横浜・大船・逗子・久里浜方面"], title: "春（トレモロ）", file: "sounds/春（トレモロ）.mp3", type: 0 },
                 { track: "15番線", direction: "横浜・大船・逗子・久里浜方面", title: "JRE-IKST-015-01", file: "sounds/JRE-IKST-015-01.mp3", type: 0 }
@@ -2348,8 +2448,8 @@
                 { track: "0番線", direction: "北綾瀬方面", title: "茜", file: "sounds/C-19-0.mp3", type: 1 },
                 { track: "1番線", direction: "北千住・西日暮里・代々木上原・伊勢原・唐木田方面", title: "閃緑", file: "sounds/C-19-1.mp3", type: 1 },
                 { track: "2番線", direction: "北千住・西日暮里・代々木上原・伊勢原・唐木田方面", title: "市松模様", file: "sounds/C-19-2.mp3", type: 1 },
-                { track: "3番線", direction: ["JR常盤線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "雨が上がったよ", file: "sounds/C-19-3.mp3", type: 1 },
-                { track: "4番線", direction: ["JR常盤線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "プリティ・タウン", file: "sounds/C-19-4.mp3", type: 1 }                
+                { track: "3番線", direction: ["JR常磐線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "雨が上がったよ", file: "sounds/C-19-3.mp3", type: 1 },
+                { track: "4番線", direction: ["JR常磐線各駅停車 松戸・我孫子・取手方面 (発車メロディ扱いなし)","東京メトロ千代田線 北綾瀬方面"], title: "プリティ・タウン", file: "sounds/C-19-4.mp3", type: 1 }                
             ],
             "C-20": [ // 北綾瀬
                 { track: "1番線", direction: "綾瀬・北千住・代々木上原・伊勢原・唐木田方面", title: "千歳緑", file: "sounds/C-20-1.mp3", type: 1 }
@@ -2660,6 +2760,90 @@
                 { track: "5番線", direction: "明治神宮前・新宿三丁目・和光市・森林公園・小川町・練馬・飯能・西武球場前方面", title: "おとぎのワルツ", file: "sounds/F-16-5.mp3", type: 1 },
                 { track: "6番線", direction: "明治神宮前・新宿三丁目・和光市・森林公園・小川町・練馬・飯能・西武球場前方面", title: "愛ステーション", file: "sounds/F-16-6.mp3", type: 1 }
             ],
+            "A-01": [ // 西馬込
+                { track: "1番線", direction: "五反田・泉岳寺・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "五反田・泉岳寺・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-02": [ // 馬込
+                { track: "1番線", direction: "西馬込方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "五反田・泉岳寺・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-03": [ // 中延
+                { track: "1番線", direction: "西馬込方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "五反田・泉岳寺・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-04": [ // 戸越
+                { track: "1番線", direction: "西馬込方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "五反田・泉岳寺・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-05": [ // 五反田
+                { track: "1番線", direction: "西馬込方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "泉岳寺・新橋・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-06": [ // 高輪台
+                { track: "1番線", direction: "五反田・西馬込方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "泉岳寺・新橋・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-07": [ // 泉岳寺
+                { track: "1番線", direction: "京急線 品川・羽田空港・逗子・葉山・浦賀・三崎口方面", title: "電子電鈴（超高音）", file: "sounds/.mp3", type: 0 },
+                { track: "2番線", direction: "五反田・西馬込方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "3番線", direction: "新橋・日本橋・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "4番線", direction: "新橋・日本橋・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-08": [ // 三田
+                { track: "1番線", direction: "泉岳寺・五反田・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "新橋・日本橋・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-09": [ // 大門
+                { track: "1番線", direction: "泉岳寺・五反田・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "新橋・日本橋・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-10": [ // 新橋
+                { track: "1番線", direction: "泉岳寺・五反田・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "日本橋・浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-11": [ // 東銀座
+                { track: "1番線", direction: "新橋・泉岳寺・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "日本橋・浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-12": [ // 宝町
+                { track: "1番線", direction: "新橋・泉岳寺・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "日本橋・浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-13": [ // 日本橋
+                { track: "1番線", direction: "新橋・泉岳寺・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-14": [ // 人形町
+                { track: "3番線", direction: "日本橋・新橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "4番線", direction: "浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-15": [ // 東日本橋
+                { track: "1番線", direction: "日本橋・新橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-16": [ // 浅草橋
+                { track: "1番線", direction: "日本橋・新橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-17": [ // 蔵前
+                { track: "1番線", direction: "日本橋・新橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "浅草・押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-18": [ // 浅草
+                { track: "1番線", direction: "日本橋・新橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-19": [ // 本所吾妻橋
+                { track: "1番線", direction: "浅草・日本橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "2番線", direction: "押上・青砥・印旛日本医大・芝山千代田・成田空港方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 }
+            ],
+            "A-20": [ // 押上
+                { track: "1番線", direction: "浅草・日本橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", title: "ベル 低音Ver.", file: "sounds/.mp3", type: 0 },
+                { track: "2番線", direction: ["浅草・日本橋・西馬込・品川・羽田空港・逗子・葉山・三崎口方面", "京成線 青砥方面"], title: "ベル 高音Ver.", file: "sounds/.mp3", type: 0 },
+                { track: "3番線", direction: ["京成線 青砥・印旛日本医大・芝山千代田・成田空港方面", "浅草・日本橋・西馬込・品川・三崎口方面"], title: "ベル 低音Ver.", file: "sounds/.mp3", type: 0 },
+                { track: "4番線", direction: "京成線 青砥・印旛日本医大・芝山千代田・成田空港方面", title: "ベル 高音Ver.", file: "sounds/.mp3", type: 0 }
+            ],
             "I-01": [ // 目黒
                 { track: "1番線", direction: "東急目黒線 日吉・新横浜・海老名・湘南台方面", title: "", file: "", type: null },
                 { track: "2番線", direction: ["東京メトロ南北線 白金高輪・永田町・赤羽岩淵・浦和美園方面", "都営三田線 白金高輪・三田・西高島平方面"], title: "", file: "", type: null }
@@ -2772,6 +2956,425 @@
                 { track: "1番線", direction: "高島平・板橋区役所前・目黒・日吉・新横浜・海老名・湘南台方面", title: "素直な心（三田線ver.）", file: "sounds/素直な心（三田線）.mp3", type: 0 },
                 { track: "2番線", direction: "高島平・板橋区役所前・目黒・日吉・新横浜・海老名・湘南台方面", title: "メロディ（三田線ver.）", file: "sounds/メロディ（三田線）.mp3", type: 0 }
             ],
+            "S-01": [ // 新宿
+                { track: "4番線", direction: "京王線 笹塚・橋本・高尾山口・京王八王子方面", title: "電子ベル", file: "sounds/.mp3", type: 0 },
+                { track: "5番線", direction: "市ヶ谷・神保町・本八幡方面", title: "電子ベル", file: "sounds/.mp3", type: 0 },
+                { track: "5番線", direction: "市ヶ谷・神保町・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-02": [ // 新宿三丁目
+                { track: "1番線", direction: "新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "市ヶ谷・神保町・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-03": [ // 曙橋
+                { track: "1番線", direction: "新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "市ヶ谷・神保町・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-04": [ // 市ヶ谷
+                { track: "1番線", direction: "新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "神保町・馬喰横山・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-05": [ // 九段下
+                { track: "5番線", direction: "市ヶ谷・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "6番線", direction: "神保町・馬喰横山・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-06": [ // 神保町
+                { track: "1番線", direction: "市ヶ谷・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "馬喰横山・森下・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-07": [ // 小川町
+                { track: "3番線", direction: "神保町・市ヶ谷・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "4番線", direction: "馬喰横山・森下・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-08": [ // 岩本町
+                { track: "1番線", direction: "神保町・市ヶ谷・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "神保町・市ヶ谷・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "3番線", direction: "馬喰横山・森下・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "4番線", direction: "馬喰横山・森下・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-09": [ // 馬喰横山
+                { track: "1番線", direction: "神保町・市ヶ谷・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "森下・大島・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-10": [ // 浜町
+                { track: "1番線", direction: "馬喰横山・神保町・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "森下・大島・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-11": [ // 森下
+                { track: "1番線", direction: "馬喰横山・神保町・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "大島・船堀・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-12": [ // 菊川
+                { track: "1番線", direction: "森下・馬喰横山・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "大島・船堀・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-13": [ // 住吉
+                { track: "1番線", direction: "森下・馬喰横山・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "大島・船堀・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-14": [ // 西大島
+                { track: "1番線", direction: "森下・馬喰横山・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "大島・船堀・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-15": [ // 大島
+                { track: "1番線", direction: "森下・馬喰横山・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "森下・馬喰横山・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "3番線", direction: "船堀・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "4番線", direction: "船堀・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-16": [ // 東大島
+                { track: "1番線", direction: "大島・森下・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "船堀・本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-17": [ // 船堀
+                { track: "1番線", direction: "大島・森下・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-18": [ // 一之江
+                { track: "1番線", direction: "船堀・大島・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-19": [ // 瑞江
+                { track: "1番線", direction: "船堀・大島・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-20": [ // 篠崎
+                { track: "1番線", direction: "船堀・大島・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "本八幡方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "S-21": [ // 本八幡
+                { track: "1番線", direction: "船堀・大島・新宿・笹塚・橋本方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "船堀・大島・新宿・笹塚・橋本方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-01": [ // 新宿西口
+                { track: "1番線", direction: "都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "飯田橋・上野御徒町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-02": [ // 東新宿
+                { track: "1番線", direction: "新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "飯田橋・上野御徒町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-03": [ // 若松河田
+                { track: "1番線", direction: "新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "飯田橋・上野御徒町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-04": [ // 牛込柳町
+                { track: "1番線", direction: "新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "飯田橋・上野御徒町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-05": [ // 牛込神楽坂
+                { track: "1番線", direction: "新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "飯田橋・上野御徒町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-06": [ // 飯田橋
+                { track: "1番線", direction: "新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "上野御徒町・両国・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-07": [ // 春日
+                { track: "3番線", direction: "飯田橋・新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "4番線", direction: "上野御徒町・両国・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-08": [ // 本郷三丁目
+                { track: "1番線", direction: "飯田橋・新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "上野御徒町・両国・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-09": [ // 上野御徒町
+                { track: "1番線", direction: "飯田橋・新宿西口・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "両国・門前仲町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-10": [ // 新御徒町
+                { track: "1番線", direction: "上野御徒町・飯田橋・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "両国・門前仲町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-11": [ // 蔵前
+                { track: "1番線", direction: "上野御徒町・飯田橋・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "両国・門前仲町・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-12": [ // 両国
+                { track: "1番線", direction: "上野御徒町・飯田橋・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "門前仲町・勝どき・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-13": [ // 森下
+                { track: "3番線", direction: "両国・上野御徒町・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "4番線", direction: "門前仲町・勝どき・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-14": [ // 清澄白河
+                { track: "1番線", direction: "両国・上野御徒町・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "両国・上野御徒町・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "3番線", direction: "門前仲町・勝どき・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "4番線", direction: "門前仲町・勝どき・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-15": [ // 門前仲町
+                { track: "1番線", direction: "両国・上野御徒町・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "勝どき・大門・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-16": [ // 月島
+                { track: "1番線", direction: "門前仲町・両国・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "勝どき・大門・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-17": [ // 勝どき
+                { track: "1番線", direction: "門前仲町・両国・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "大門・六本木・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-18": [ // 築地市場
+                { track: "1番線", direction: "勝どき・門前仲町・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "大門・六本木・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-19": [ // 汐留
+                { track: "1番線", direction: "勝どき・門前仲町・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "大門・六本木・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-20": [ // 大門
+                { track: "3番線", direction: "勝どき・門前仲町・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "4番線", direction: "六本木・新宿・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-21": [ // 赤羽橋
+                { track: "1番線", direction: "大門・勝どき・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "六本木・新宿・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-22": [ // 麻布十番
+                { track: "1番線", direction: "大門・勝どき・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "六本木・新宿・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-23": [ // 六本木
+                { track: "1番線", direction: "大門・勝どき・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "新宿・都庁前・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-24": [ // 青山一丁目
+                { track: "1番線", direction: "六本木・大門・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "新宿・都庁前・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-25": [ // 国立競技場
+                { track: "1番線", direction: "六本木・大門・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "新宿・都庁前・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-26": [ // 代々木
+                { track: "1番線", direction: "六本木・大門・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "新宿・都庁前・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-27": [ // 新宿
+                { track: "6番線", direction: "六本木・大門・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "7番線", direction: "都庁前・中野坂上・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-28": [ // 都庁前
+                { track: "1番線", direction: "新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "新宿西口・飯田橋・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 },
+                { track: "3番線", direction: "降車専用ホーム", title: "", file: "", type: null },
+                { track: "4番線", direction: "中野坂上・練馬・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-29": [ // 西新宿五丁目
+                { track: "1番線", direction: "都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "中野坂上・練馬・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-30": [ // 中野坂上
+                { track: "1番線", direction: "都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "練馬・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-31": [ // 東中野
+                { track: "1番線", direction: "中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "練馬・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-32": [ // 中井
+                { track: "1番線", direction: "中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "練馬・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-33": [ // 落合南長崎
+                { track: "1番線", direction: "中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "練馬・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-34": [ // 新江古田
+                { track: "1番線", direction: "中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "練馬・光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-35": [ // 練馬
+                { track: "1番線", direction: "中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-36": [ // 豊島園
+                { track: "1番線", direction: "練馬・中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-37": [ // 練馬春日町
+                { track: "1番線", direction: "練馬・中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "光が丘方面", title: "素直な心", file: "sounds/素直な心.mp3", type: 0 }
+            ],
+            "E-38": [ // 光が丘
+                { track: "1番線", direction: "練馬・中野坂上・都庁前・新宿・六本木・都庁前方面", title: "メロディ", file: "sounds/メロディ.mp3", type: 0 },
+                { track: "2番線", direction: "降車専用ホーム", title: "", file: "", type: null }
+            ],
+            "NT-01": [ // 日暮里
+                { track: "1番線", direction: "西日暮里・熊野前・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "西日暮里・熊野前・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-02": [ // 西日暮里
+                { track: "1番線", direction: "熊野前・江北・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-03": [ // 赤土小学校前
+                { track: "1番線", direction: "熊野前・江北・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "西日暮里・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-04": [ // 熊野前
+                { track: "1番線", direction: "江北・舎人公園・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "西日暮里・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-05": [ // 足立小台
+                { track: "1番線", direction: "江北・舎人公園・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "熊野前・西日暮里・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-06": [ // 扇大橋
+                { track: "1番線", direction: "江北・舎人公園・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "熊野前・西日暮里・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-07": [ // 高野
+                { track: "1番線", direction: "江北・舎人公園・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "熊野前・西日暮里・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-08": [ // 江北
+                { track: "1番線", direction: "舎人公園・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "熊野前・西日暮里・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-09": [ // 西新井大師西
+                { track: "1番線", direction: "舎人公園・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "江北・熊野前・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-10": [ // 谷在家
+                { track: "1番線", direction: "舎人公園・見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "江北・熊野前・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-11": [ // 舎人公園
+                { track: "1番線", direction: "見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "3番線", direction: "降車専用ホーム", title: "", file: "", type: null },
+                { track: "4番線", direction: "江北・熊野前・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-12": [ // 舎人
+                { track: "1番線", direction: "見沼代親水公園方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "舎人公園・江北・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "NT-13": [ // 見沼代親水公園
+                { track: "1番線", direction: "舎人公園・江北・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 },
+                { track: "2番線", direction: "舎人公園・江北・日暮里方面", title: "NT標準", file: "sounds/NT標準.mp3", type: 1 }
+            ],
+            "SA-01": [ // 三ノ輪橋
+                { track: "早稲田方面のりば", direction: "町屋駅前・熊野前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "降車専用のりば", direction: "降車専用", title: "", file: "", type: null }
+            ],
+            "SA-02": [ // 荒川一中前
+                { track: "早稲田方面のりば", direction: "町屋駅前・熊野前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-03": [ // 荒川区役所前
+                { track: "早稲田方面のりば", direction: "町屋駅前・熊野前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-04": [ // 荒川二丁目
+                { track: "早稲田方面のりば", direction: "町屋駅前・熊野前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-05": [ // 荒川七丁目
+                { track: "早稲田方面のりば", direction: "町屋駅前・熊野前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-06": [ // 町屋駅前
+                { track: "早稲田方面のりば", direction: "熊野前・荒川車庫前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-07": [ // 町屋二丁目
+                { track: "早稲田方面のりば", direction: "熊野前・荒川車庫前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "町屋駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-08": [ // 東尾久三丁目
+                { track: "早稲田方面のりば", direction: "熊野前・荒川車庫前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "町屋駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-09": [ // 熊野前
+                { track: "早稲田方面のりば", direction: "荒川車庫前・王子駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "町屋駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-10": [ // 宮ノ前
+                { track: "早稲田方面のりば", direction: "荒川車庫前・王子駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "熊野前・町屋駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-11": [ // 小台
+                { track: "早稲田方面のりば", direction: "荒川車庫前・王子駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "熊野前・町屋駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-12": [ // 荒川遊園地前
+                { track: "早稲田方面のりば", direction: "荒川車庫前・王子駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "熊野前・町屋駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-13": [ // 荒川車庫前
+                { track: "早稲田方面のりば", direction: "王子駅前・新庚申塚・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "熊野前・町屋駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-14": [ // 梶原
+                { track: "早稲田方面のりば", direction: "王子駅前・新庚申塚・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "荒川車庫前・熊野前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-15": [ // 栄町
+                { track: "早稲田方面のりば", direction: "王子駅前・新庚申塚・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "荒川車庫前・熊野前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-16": [ // 王子駅前
+                { track: "早稲田方面のりば", direction: "新庚申塚・大塚駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "荒川車庫前・熊野前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-17": [ // 飛鳥山
+                { track: "早稲田方面のりば", direction: "新庚申塚・大塚駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "王子駅前・荒川車庫前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-18": [ // 滝野川一丁目
+                { track: "早稲田方面のりば", direction: "新庚申塚・大塚駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "王子駅前・荒川車庫前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-19": [ // 西ヶ原四丁目
+                { track: "早稲田方面のりば", direction: "新庚申塚・大塚駅前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "王子駅前・荒川車庫前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-20": [ // 新庚申塚
+                { track: "早稲田方面のりば", direction: "大塚駅前・東池袋四丁目・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "王子駅前・荒川車庫前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-21": [ // 庚申塚
+                { track: "早稲田方面のりば", direction: "大塚駅前・東池袋四丁目・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "新庚申塚・王子駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-22": [ // 巣鴨新田
+                { track: "早稲田方面のりば", direction: "大塚駅前・東池袋四丁目・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "新庚申塚・王子駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-23": [ // 大塚駅前
+                { track: "早稲田方面のりば", direction: "東池袋四丁目・鬼子母神前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "新庚申塚・王子駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-24": [ // 向原
+                { track: "早稲田方面のりば", direction: "東池袋四丁目・鬼子母神前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "大塚駅前・新庚申塚・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-25": [ // 東池袋四丁目
+                { track: "早稲田方面のりば", direction: "鬼子母神前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "大塚駅前・新庚申塚・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-26": [ // 都電雑司ヶ谷
+                { track: "早稲田方面のりば", direction: "鬼子母神前・早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "東池袋四丁目・大塚駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-27": [ // 鬼子母神前
+                { track: "早稲田方面のりば", direction: "早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "東池袋四丁目・大塚駅前・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-28": [ // 学習院下
+                { track: "早稲田方面のりば", direction: "早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "鬼子母神前・東池袋四丁目・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-29": [ // 面影橋
+                { track: "早稲田方面のりば", direction: "早稲田方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 },
+                { track: "三ノ輪橋方面のりば", direction: "鬼子母神前・東池袋四丁目・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
+            "SA-30": [ // 早稲田
+                { track: "降車専用のりば", direction: "降車専用", title: "", file: "", type: null },
+                { track: "三ノ輪橋方面のりば", direction: "鬼子母神前・東池袋四丁目・三ノ輪橋方面", title: "発車ベル（チンチン）", file: "sounds/都電荒川線発車ベル.mp3", type: 1 }
+            ],
             "TY-01": [ // 渋谷
                 { track: "3番線", direction: "東急東横線 横浜・元町・中華街・新横浜・海老名・湘南台方面", title: "Departing from New Shibuya Terminal", file: "sounds/Departing from New Shibuya Terminal.mp3", type: 1 },
                 { track: "4番線", direction: "東急東横線 横浜・元町・中華街・新横浜・海老名・湘南台方面", title: "Departing from New Shibuya Terminal", file: "sounds/Departing from New Shibuya Terminal.mp3", type: 1 },
@@ -2880,6 +3483,660 @@
                 { track: "8番線", direction: ["JR埼京線 新宿・大宮・川越方面","JR湘南新宿ライン(宇都宮線) 新宿・大宮・宇都宮方面","JR湘南新宿ライン(高崎線) 新宿・大宮・高崎・前橋方面","りんかい線 東京テレポート・新木場方面"], title: "JRE-IKST-018-01", file: "sounds/JRE-IKST-018-01.mp3", type: 0 }
             ]
         };
+
+        const transferData = {
+            "JY-01": ["JK-26", "JT-01", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "JE-01", "M-17"],
+            "JY-02": ["JK-27", "JC-02", "G-13"],
+            "JY-03": ["JK-28", "JB-19", "TX-01", "H-16", "S-08"],
+            "JY-04": ["JK-29", "G-15", "H-17", "E-09",],
+            "JY-05": ["JK-30", "JU-02", "JJ-01", "JU-02,JJ-01", "KS-01", "G-16", "H-18"],
+            "JY-06": ["JK-31"],
+            "JY-07": ["JK-32", "JJ-02", "KS-02", "NT-01"],
+            "JY-08": ["JK-33", "NT-02", "C-16"],
+            "JY-09": ["JK-34"],
+            "JY-10": ["N-14"],
+            "JY-11": ["I-15"],
+            "JY-12": ["SA-23"],
+            "JY-13": ["JA-12", "JS-21", "TJ-01", "SI-01", "M-25", "Y-09", "F-09"],
+            "JY-15": ["SS-02", "T-03"],
+            "JY-17": ["JC-05", "JB-10", "JA-11", "JS-20", "OH-01", "KO-01", "M-08", "S-01", "E-27", "E-01"],
+            "JY-18": ["JB-11", "E-26"],
+            "JY-19": ["C-03", "F-15"],
+            "JY-20": ["JA-10", "JS-19", "TY-01", "DT-01", "IN-01", "G-01", "Z-01", "F-16"],
+            "JY-21": ["JA-09", "JS-18", "H-02"],
+            "JY-22": ["MG-01", "N-01", "I-01"],
+            "JY-23": ["IK-01", "A-05"],
+            "JY-24": ["JA-08", "JS-17", "R-08"],
+            "JY-25": ["JK-20", "JT-03", "JO-17", "KK-01"],
+            "JY-26": ["JK-21", "A-07-"],
+            "JY-27": ["JK-22", "A-08", "I-04"],
+            "JY-28": ["JK-23", "MO-01", "A-09", "E-20"],
+            "JY-29": ["JK-24", "JT-02", "JO-18", "U-01", "G-08", "A-10"],
+            "JY-30": ["JK-25", "H-08", "Y-18"],
+            "JK-17": ["TM-07", "IK-15"],
+            "JK-19": ["OM-01", "R-07"],
+            "JK-20": ["JY-25", "JT-03", "JO-17", "KK-01"],
+            "JK-21": ["JY-26", "A-07-"],
+            "JK-22": ["JY-27", "A-08", "I-04"],
+            "JK-23": ["JY-28", "MO-01", "A-09", "E-20"],
+            "JK-24": ["JY-29", "JT-02", "JO-18", "U-01", "G-08", "A-10"],
+            "JK-25": ["JY-30", "H-08", "Y-18"],
+            "JK-26": ["JY-01", "JT-01", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "JE-01", "M-17"],
+            "JK-27": ["JY-02", "JC-02", "G-13"],
+            "JK-28": ["JY-03", "JB-19", "TX-01", "H-16", "S-08"],
+            "JK-29": ["JY-04", "G-15", "H-17", "E-09",],
+            "JK-30": ["JY-05", "JU-02", "JJ-01", "JU-02,JJ-01", "KS-01", "G-16", "H-18"],
+            "JK-31": ["JY-06"],
+            "JK-32": ["JY-07", "JJ-02", "KS-02", "NT-01"],
+            "JK-33": ["JY-08", "NT-02", "C-16"],
+            "JK-34": ["JY-09"],
+            "JK-36": ["N-16", "SA-16"],
+            "JK-38": ["JU-04", "JA-15", "JS-22"],
+            "JT-01": ["JY-01", "JK-26", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "JE-01", "M-17"],
+            "JT-02": ["JY-29", "JK-24", "JO-18", "U-01", "G-08", "A-10"],
+            "JT-03": ["JY-25", "JK-20", "JO-17", "KK-01"],
+            "JU-01": ["JY-01", "JK-26", "JT-01", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "JE-01", "M-17"],
+            "JU-02": ["JY-05", "JK-30", "JU-02", "JJ-01", "JU-02,JJ-01", "KS-01", "G-16", "H-18"],
+            "JU-03": ["JU-03"],
+            "JU-04": ["JK-38", "JU-04", "JA-15", "JS-22"],
+            "JJ-01": ["JY-05", "JK-30", "JU-02", "JU-02,JJ-01", "KS-01", "G-16", "H-18"],
+            "JJ-02": ["JY-07", "JK-32", "KS-02", "NT-01"],
+            "JJ-04": ["TX-04", "H-21"],
+            "JJ-05": ["C-18", "TS-09", "TX-05", "H-22", "C-18"],
+            "C-18": [["C-18", "JJ-05", "TS-09", "TX-05", "H-22"],["C-18", "H-22", "JJ-05", "TS-09", "TX-05"]],
+            "JL-19": ["C-19"],
+            "JL-21": ["KS-51"],
+            "JT-01,JU-01": ["JY-01", "JK-26", "JT-01", "JU-01", "JC-01", "JO-19", "JE-01", "M-17"],
+            "JU-02,JJ-01": ["JY-05", "JK-30", "JU-02", "JJ-01", "KS-01", "G-16", "H-18"],
+            "JC-01": ["JY-01", "JK-26", "JT-01", "JU-01", "JT-01,JU-01", "JO-19", "JE-01", "M-17"],
+            "JC-02": ["JY-02", "JK-27", "G-13"],
+            "JC-03": ["JB-18", "M-20", "C-12"],
+            "JC-04": ["JB-14", "M-12", "N-08"],
+            "JC-05": ["JB-10", "JY-17", "JA-11", "JS-20", "OH-01", "KO-01", "M-08", "S-01", "E-27", "E-01"],
+            "JC-06": ["JB-07", "T-01"],
+            "JC-07": ["JB-06"],
+            "JC-08": ["JB-05"],
+            "JC-09": ["JB-04", "M-01"],
+            "JC-10": ["JB-03"],
+            "JO-16": ["JS-16"],
+            "JO-17": ["JY-25", "JK-20", "JT-03", "KK-01"],
+            "JO-18": ["JY-29", "JK-24", "JT-02", "U-01", "G-08", "A-10"],
+            "JO-19": ["JY-01", "JK-26", "JT-01", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "JE-01", "M-17"],
+            "JO-20": ["G-12", "Z-09"],
+            "JO-21": ["A-15", "S-09"],
+            "JO-22": ["JB-22", "Z-13"],
+            "JO-23": ["JB-25"],
+            "JB-03": ["JC-10"],
+            "JB-04": ["JC-09", "M-01"],
+            "JB-05": ["JC-08"],
+            "JB-06": ["JC-07"],
+            "JB-07": ["JC-06", "T-01"],
+            "JB-08": ["E-31"],
+            "JB-10": ["JC-05", "JY-17", "JA-11", "JS-20", "OH-01", "KO-01", "M-08", "S-01", "E-27", "E-01"],
+            "JB-11": ["JY-18", "E-26"],
+            "JB-12": ["E-25"],
+            "JB-14": ["JC-04", "M-12", "N-08"],
+            "JB-15": ["Y-14", "N-09", "S-04"],
+            "JB-16": ["T-06", "Y-13", "N-10", "E-06"],
+            "JB-17": ["I-11"],
+            "JB-18": ["JC-03", "M-20", "C-12"],
+            "JB-19": ["JY-03", "JK-28", "TX-01", "H-16", "S-08"],
+            "JB-20": ["A-16"],
+            "JB-21": ["E-12"],
+            "JB-22": ["JO-22", "Z-13"],
+            "JB-23": ["TS-44"],
+            "JB-25": ["JO-23"],
+            "JA-08": ["R-08", "JS-17", "JY-24"],
+            "JA-09": ["JS-18", "JY-21", "H-02"],
+            "JA-10": ["JS-19", "JY-20", "TY-01", "DT-01", "IN-01", "G-01", "Z-01", "F-16"],
+            "JA-11": ["JS-20", "JY-17", "JC-05", "JB-10", "OH-01", "KO-01", "M-08", "S-01", "E-27", "E-01"],
+            "JA-12": ["JS-21", "JY-13", "TJ-01", "SI-01", "M-25", "Y-09", "F-09"],
+            "JA-13": ["I-17"],
+            "JA-15": ["JK-38", "JU-04", "JS-22"],
+            "JS-16": ["JO-16"],
+            "JS-17": ["JA-08", "JY-24", "R-08"],
+            "JS-18": ["JA-09", "JY-21", "H-02"],
+            "JS-19": ["JA-10", "JY-20", "TY-01", "DT-01", "IN-01", "G-01", "Z-01", "F-16"],
+            "JS-20": ["JA-11", "JY-17", "JC-05", "JB-10", "OH-01", "KO-01", "M-08", "S-01", "E-27", "E-01"],
+            "JS-21": ["JA-12", "JY-13", "TJ-01", "SI-01", "M-25", "Y-09", "F-09"],
+            "JS-22": ["JK-38", "JU-04", "JA-15"],
+            "JE-01": ["JY-01", "JK-26", "JT-01", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "M-17"],
+            "JE-02": ["H-12"],
+            "JE-05": ["R-01", "Y-24"],
+            "G-01": ["Z-01", "F-16", "JY-20", "JA-10", "JS-19", "TY-01", "DT-01", "IN-01"],
+            "G-02": ["C-04", "Z-02"],
+            "G-04": ["Z-03", "E-24"],
+            "G-05": ["M-13", "Y-16", "Z-04", "N-07"],
+            "G-06": ["N-06", "M-14", "C-07"],
+            "G-07": ["H-06"],
+            "G-08": ["A-10", "JY-29", "JK-24", "JT-02", "JO-18", "U-01"],
+            "G-09": ["M-16", "H-09", "Y-19"],
+            "G-11": ["T-10", "A-13"],
+            "G-12": ["Z-09", "JO-20"],
+            "G-13": ["JY-02", "JK-27", "JC-02"],
+            "G-15": ["H-17", "E-09", "JY-04", "JK-29"],
+            "G-16": ["H-18", "JY-05", "JK-30", "JU-02", "JJ-01", "JU-02,JJ-01", "KS-01"],
+            "G-19": ["A-18", "TS-01"],
+            "M-01": ["JC-09", "JB-04"],
+            "M-06": ["M-06", "E-30"],
+            "M-08": ["S-01", "E-27", "E-01", "JY-17", "JC-05", "JB-10", "JA-11", "JS-20", "OH-01", "KO-01", "SS-01"],
+            "M-09": ["F-13", "S-02"],
+            "M-12": ["N-08", "JC-04", "JB-14"],
+            "M-13": ["G-05", "Y-16", "Z-04", "N-07"],
+            "M-14": ["C-07", "G-06", "N-06"],
+            "M-15": ["H-07", "C-08"],
+            "M-16": ["G-09","H-09","Y-19"],
+            "M-17": ["JY-01", "JK-26", "JT-01", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "JE-01"],
+            "M-18": ["T-09", "C-11", "Z-08", "I-09"],
+            "M-19": ["C-12", "S-07"],
+            "M-20": ["C-12", "JC-03", "JB-18"],
+            "M-21": ["E-08"],
+            "M-22": ["N-11", "I-12", "E-07"],
+            "M-25": ["Y-09", "F-09", "JY-13", "JA-12", "JS-21", "TJ-01", "SI-01"],
+            "H-01": ["TY-03"],
+            "H-02": ["JY-21", "JA-09", "JS-18"],
+            "H-04": ["E-23"],
+            "H-06": ["G-07"],
+            "H-07": ["M-15", "C-08"],
+            "H-08": ["C-09", "I-08", "Y-18", "JY-30", "JK-25"],
+            "H-09": ["G-09", "M-16", "Y-19"],
+            "H-10": ["A-11"],
+            "H-11": ["Y-20"],
+            "H-12": ["JE-02"],
+            "H-13": ["T-11"],
+            "H-14": ["A-14", "Z-10"],
+            "H-16": ["S-08", "JY-03", "JK-28", "JB-19", "TX-01"],
+            "H-17": ["G-15", "E-09", "JY-04", "JK-29"],
+            "H-18": ["G-16", "JY-05", "JK-30", "JU-02", "JJ-01", "JU-02,JJ-01", "KS-01"],
+            "H-20": ["SA-01"],
+            "H-22": ["TS-09", "C-18-", "JJ-05", "C-18", "TX-05", "H-22"],
+            "T-01": ["JB-07", "JC-06"],
+            "T-03": ["JY-15", "SS-02"],
+            "T-06": ["Y-13", "N-10", "E-06", "JB-16"],
+            "T-07": ["Z-06", "S-05"],
+            "T-09": ["M-18", "C-11", "Z-08", "I-09", "JY-01", "JK-26", "JT-01", "JU-01", "JT-01,JU-01", "JC-01", "JO-19", "JE-01"],
+            "T-10": ["G-11", "A-13"],
+            "T-11": ["H-13"],
+            "T-12": ["E-15"],
+            "C-01": ["OH-05"],
+            "C-03": ["F-15", "JY-19"],
+            "C-04": ["G-02", "Z-02"],
+            "C-07": ["M-14", "G-06", "N-06"],
+            "C-08": ["M-15", "H-07"],
+            "C-09": ["H-08", "I-08", "Y-18"],
+            "C-11": ["M-18", "T-09", "Z-08", "I-09"],
+            "C-12": ["M-19", "S-07", "JC-03", "JB-18"],
+            "C-16": ["JY-08", "JK-33", "NT-02"],
+            "C-17": ["KS-04", "SA-06"],
+            "C-19": ["JL-19"],
+            "Y-01": ["F-01"],
+            "Y-02": ["F-02"],
+            "Y-03": ["F-03"],
+            "Y-04": ["F-04"],
+            "Y-05": ["F-05"],
+            "Y-06": ["SI-37", "F-06"],
+            "Y-07": ["F-07"],
+            "Y-08": ["F-08"],
+            "Y-09": ["M-25", "F-09", "JY-13", "JA-12", "JS-21", "TJ-01", "SI-01"],
+            "Y-10": ["SA-25"],
+            "Y-13": ["T-06", "N-10", "E-06", "JB-16"],
+            "Y-14": ["N-09", "S-04", "JB-15"],
+            "Y-16": ["Z-04", "N-07", "G-05", "M-13"],
+            "Y-18": ["JY-30", "JK-25", "H-08", "C-09", "I-08"],
+            "Y-19": ["G-09", "M-16", "H-09"],
+            "Y-20": ["H-11"],
+            "Y-21": ["E-16"],
+            "Y-22": ["U-16"],
+            "Y-24": ["JE-05", "R-01"],
+            "Z-01": ["DT-01", "G-01", "F-16", "JY-20", "JA-10", "JS-19", "TY-01", "IN-01"],
+            "Z-02": ["G-02", "C-04"],
+            "Z-03": ["G-04", "E-24"],
+            "Z-04": ["Y-16", "N-07", "G-05", "M-13"],
+            "Z-06": ["T-07", "S-05"],
+            "Z-07": ["I-10", "S-06"],
+            "Z-08": ["M-18", "T-09", "C-11", "I-09"],
+            "Z-09": ["G-12", "JO-20"],
+            "Z-10": ["H-14", "A-14"],
+            "Z-11": ["E-14"],
+            "Z-12": ["S-13"],
+            "Z-13": ["JO-22", "JB-22"],
+            "Z-14": ["TS-03", "A-20", "KS-45-"],
+            "N-01": ["MG-01", "I-01", "JY-22"],
+            "N-02": ["I-02"],
+            "N-03": ["I-03"],
+            "N-04": ["E-22"],
+            "N-06": ["G-06", "M-14", "C-07"],
+            "N-07": ["Y-16", "Z-04", "G-05", "M-13"],
+            "N-08": ["M-12", "JC-04", "JB-14"],
+            "N-09": ["Y-14", "S-04", "JB-15"],
+            "N-10": ["T-06", "Y-13", "E-06", "JB-16"],
+            "N-11": ["M-22", "I-12", "E-07"],
+            "N-14": ["JY-10"],
+            "N-16": ["JK-36", "SA-16"],
+            "N-19": ["SR-19"],
+            "F-01": ["Y-01"],
+            "F-02": ["Y-02"],
+            "F-03": ["Y-03"],
+            "F-04": ["Y-04"],
+            "F-05": ["Y-05"],
+            "F-06": ["SI-37", "Y-06"],
+            "F-07": ["Y-07"],
+            "F-08": ["Y-08"],
+            "F-09": ["M-25", "Y-09", "JY-13", "JA-12", "JS-21", "TJ-01", "SI-01"],
+            "F-10": ["SA-27"],
+            "F-12": ["E-02"],
+            "F-13": ["M-09", "S-02"],
+            "F-15": ["C-03", "JY-19"],
+            "F-16": ["TY-01", "G-01", "Z-01", "JY-20", "JA-10", "JS-19", "DT-01", "IN-01"],
+            "A-03": ["OM-04"],
+            "A-05": ["JY-23", "IK-01"],
+            "A-07": ["A-07", "JY-26", "JK-21"],
+            "A-08": ["I-04", "JY-27", "JK-22"],
+            "A-09": ["E-20", "JY-28", "JK-23", "MO-01"],
+            "A-10": ["G-08", "JY-29", "JK-24", "JT-02", "JO-18", "U-01"],
+            "A-11": ["H-10"],
+            "A-13": ["G-11", "T-10"],
+            "A-14": ["H-14", "Z-10"],
+            "A-15": ["S-09", "JO-21"],
+            "A-16": ["JB-20"],
+            "A-17": ["E-11"],
+            "A-18": ["G-19", "TS-01"],
+            "A-20": ["KS-45-", "Z-14", "TS-03"],
+            "I-01": ["MG-01", "N-01", "JY-22"],
+            "I-02": ["N-02"],
+            "I-03": ["N-03"],
+            "I-04": ["A-08", "JY-27", "JK-22"],
+            "I-08": ["H-08", "C-09", "Y-18", "JY-30", "JK-25"],
+            "I-09": ["M-18", "T-09", "C-11", "Z-08"],
+            "I-10": ["S-06", "Z-07"],
+            "I-11": ["JB-17"],
+            "I-12": ["E-07", "M-22", "N-11"],
+            "I-15": ["JY-11"],
+            "I-16": ["SA-20"],
+            "I-17": ["JA-13"],
+            "S-01": ["KO-01-", "E-27", "E-01", "M-08", "JY-17", "JC-05", "JB-10", "JA-11", "JS-20", "OH-01", "KO-01"],
+            "S-02": ["M-09", "F-13"],
+            "S-04": ["Y-14", "N-09", "JB-15"],
+            "S-05": ["T-07", "Z-06"],
+            "S-06": ["I-10", "Z-07"],
+            "S-07": ["M-19", "C-12"],
+            "S-08": ["JY-03", "JK-28", "JB-19", "TX-01", "H-16"],
+            "S-09": ["A-15", "JO-21"],
+            "S-11": ["E-13"],
+            "S-13": ["Z-12"],
+            "E-01": ["S-01", "M-08", "JY-17", "JC-05", "JB-10", "JA-11", "JS-20", "OH-01", "KO-01", "SS-01"],
+            "E-02": ["F-12"],
+            "E-06": ["T-06", "Y-13", "N-10", "JB-16"],
+            "E-07": ["I-12", "M-22", "N-11"],
+            "E-08": ["M-21"],
+            "E-09": ["G-15", "H-17", "JY-04", "JK-29"],
+            "E-10": ["TX-02"],
+            "E-11": ["A-17"],
+            "E-12": ["JB-21"],
+            "E-13": ["S-11"],
+            "E-14": ["Z-11"],
+            "E-15": ["T-12"],
+            "E-16": ["Y-21"],
+            "E-19": ["U-02"],
+            "E-20": ["A-09", "JY-28", "JK-23", "MO-01"],
+            "E-22": ["N-04"],
+            "E-23": ["H-04"],
+            "E-24": ["G-04", "Z-03"],
+            "E-25": ["JB-12"],
+            "E-26": ["JY-18", "JB-11"],
+            "E-27": ["S-01", "M-08", "JY-17", "JC-05", "JB-10", "JA-11", "JS-20", "OH-01", "KO-01"],
+            "E-30": ["M-06"],
+            "E-31": ["JB-08"],
+            "E-32": ["SS-04"],
+            "E-35": ["SI-06"],
+            "E-36": ["SI-39"],
+            "NT-01": ["JY-07", "JK-32", "JJ-02", "KS-02"],
+            "NT-02": ["JY-08", "JK-33", "C-16"],
+            "NT-04": ["SA-09"],
+            "SA-01": ["H-20"],
+            "SA-06": ["C-17", "KS-04"],
+            "SA-09": ["NT-04"],
+            "SA-16": ["JK-36", "N-16"],
+            "SA-20": ["I-16"],
+            "SA-23": ["JY-12"],
+            "SA-25": ["Y-10"],
+            "SA-27": ["F-10"],
+            "TY-01": ["F-16", "DT-01", "JY-20", "JA-10", "JS-19", "IN-01", "G-01", "Z-01"],
+            "TY-03": ["H-01"],
+            "TY-07": ["OM-10"],
+            "TY-08": ["MG-08"],
+            "TY-09": ["MG-09", "TM-01"],
+            "MG-01": ["JY-22", "N-01", "I-01"],
+            "MG-06": ["OM-08"],
+            "MG-08": ["TY-08"],
+            "MG-09": ["TY-09", "TM-01"],
+            "DT-01": ["Z-01", "TY-01", "JY-20", "JA-10", "JS-19", "IN-01", "G-01", "F-16"],
+            "DT-03": ["SG-01"],
+            "DT-07": ["OM-15"],
+            "OM-01": ["JK-19", "R-07"],
+            "OM-04": ["A-03"],
+            "OM-06": ["IK-05"],
+            "OM-08": ["MG-06"],
+            "OM-10": ["TY-07"],
+            "OM-15": ["DT-07"],
+            "TM-01": ["TY-09", "MG-09"],
+            "TM-07": ["IK-15", "JK-17"],
+            "IK-01": ["JY-23", "A-05"],
+            "IK-05": ["OM-06"],
+            "IK-15": ["TM-07", "JK-17"],
+            "SG-01": ["DT-03"],
+            "SG-08": ["OH-10"],
+            "SG-10": ["KO-07"],
+            "TS-01": ["G-19", "A-18"],
+            "TS-03": ["Z-14", "KS-45-", "A-20"],
+            "TS-04": ["TS-04"],
+            "TS-08": ["KS-06"],
+            "TS-09": ["JJ-05", "C-18", "TX-05", "H-22", "C-18"],
+            "TS-13": ["TS-13"],
+            "TS-44": ["JB-23"],
+            "TJ-01": ["JY-13", "JA-12", "JS-21", "SI-01", "M-25", "Y-09", "F-09"],
+            "SI-01": ["JY-13", "JA-12", "JS-21", "TJ-01", "M-25", "Y-09", "F-09"],
+            "SI-06": ["SI-06", "E-35"],
+            "SI-37": ["Y-06", "F-06"],
+            "SI-39": ["E-36"],
+            "SS-01": ["M-08", "E-01"],
+            "SS-02": ["JY-15", "T-03"],
+            "SS-04": ["E-32"],
+            "OH-01": ["JY-17", "JC-05", "JB-10", "JA-11", "JS-20", "KO-01", "M-08", "S-01", "E-27", "E-01"],
+            "OH-05": ["C-01"],
+            "OH-07": ["IN-05"],
+            "OH-10": ["SG-08"],
+            "KO-01": [["KO-01", "JY-17", "JC-05", "JB-10", "JA-11", "JS-20", "OH-01", "M-08", "S-01", "E-27", "E-01"], ["S-01", "KO-01", "JY-17", "JC-05", "JB-10", "JA-11", "JS-20", "OH-01", "M-08", "E-27", "E-01"]],
+            "KO-04": ["KO-04"],
+            "KO-06": ["IN-08"],
+            "KO-07": ["SG-10"],
+            "IN-01": ["JY-20", "JA-10", "JS-19", "TY-01", "DT-01", "G-01", "Z-01", "F-16"],
+            "IN-05": ["OH-07"],
+            "IN-08": ["KO-06"],
+            "KS-01": ["KS-01", "JY-05", "JK-30", "JU-02", "JJ-01", "JU-02,JJ-01", "G-16", "H-18"],
+            "KS-02": ["KS-02", "JY-07", "JK-32", "JJ-02", "NT-01"],
+            "KS-04": ["C-17", "SA-06"],
+            "KS-06": ["TS-08"],
+            "KS-09": ["KS-09"],
+            "KS-10": ["KS-10"],
+            "KS-45": ["A-20", "TS-03", "Z-14"],
+            "KS-51": ["JL-21"],
+            "KK-01": ["JY-25", "JK-20", "JT-03", "JO-17"],
+            "KK-11": ["KK-11"],
+            "KK-15": ["MO-07"],
+            "KK-16": ["MO-08"],
+            "KK-17": ["MO-10", "MO-11"],
+            "MO-01": ["JY-28", "JK-23", "A-09", "E-20"],
+            "MO-02": ["R-05"],
+            "MO-07": ["KK-15"],
+            "MO-08": ["KK-16"],
+            "MO-10": ["KK-17"],
+            "MO-11": ["KK-17"],
+            "U-01": ["JY-29", "JK-24", "JT-02", "JO-18", "G-08", "A-10"],
+            "U-02": ["E-19"],
+            "U-12": ["R-03"],
+            "U-16": ["Y-22"],
+            "R-01": ["JE-05", "Y-24"],
+            "R-03": ["U-12"],
+            "R-05": ["MO-02"],
+            "R-07": ["JK-19", "OM-01"],
+            "R-08": ["JA-08", "JS-17", "JY-24"],
+            "TX-01": ["JY-03", "JK-28", "JB-19", "H-16", "S-08"],
+            "TX-02": ["E-10"],
+            "TX-04": ["JJ-04", "H-21"],
+            "TX-05": ["JJ-05", "C-18", "TS-09", "H-22", "C-18"],
+            "SR-19": ["N-19"],
+        };
+
+        // =====================================
+        // ★ 乗換案内UI更新 ＆ トグル連動システム
+        // =====================================
+        const transferToggleEl = document.getElementById("transfer-toggle");
+
+        transferToggleEl.addEventListener("change", () => {
+            updateTransferUI();
+        });
+
+        function updateTransferUI() {
+            if (!currentStationFullId) return;
+
+            const transferContainer = document.getElementById("transfer-container");
+            transferContainer.innerHTML = "";
+
+            if (isSpinning) {
+                const noneDiv = document.createElement("div");
+                noneDiv.className = "melody-none";
+                noneDiv.textContent = "🚇 抽選中...";
+                transferContainer.appendChild(noneDiv);
+                return;
+            }
+
+            // ★修正：複合ID(例："JT-01,JU-01")がそのままtransferDataに登録されているかを最優先でチェック
+            let targetKeyList = [];
+            if (transferData[currentStationFullId]) {
+                // 複合IDでの登録があれば、そのまま使う
+                targetKeyList = [currentStationFullId];
+            } else {
+                // なければ従来通りカンマで分割してそれぞれのIDを使う
+                targetKeyList = currentStationFullId.split(",").map(id => id.trim());
+            }
+
+            let transfers = [];
+            
+            // 各キーの乗換データを取得
+            for (let key of targetKeyList) {
+                if (transferData[key]) {
+                    let targetList = transferData[key];
+
+                    // 二次元配列が指定されている場合、現在の駅の「登録順」を判定して出し分ける
+                    if (targetList.length > 0 && Array.isArray(targetList[0])) {
+                        const stationsWithId = allStationsMaster.filter(raw => {
+                            const fullId = raw.split(" ")[0];
+                            const ids = fullId.split(",").map(i => i.trim());
+                            return fullId === key || ids.includes(key);
+                        });
+
+                        let stationIndex = stationsWithId.indexOf(currentStationRawText);
+                        if (stationIndex === -1) stationIndex = 0; // フェイルセーフ
+
+                        const arrayIndex = Math.min(stationIndex, targetList.length - 1);
+                        targetList = targetList[arrayIndex];
+                    }
+
+                    targetList.forEach(tId => {
+                        transfers.push(tId);
+                    });
+                }
+            }
+
+            const isAlwaysShow = transferToggleEl.checked;
+
+            if (transfers.length > 0) {
+                // 乗換ボタン群を生成する内部関数
+                const buildTransferButtons = () => {
+                    const btnBox = document.createElement("div");
+                    btnBox.style.cssText = "display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px;";
+                    
+                    const textElementsToAdjust = []; // 描画後に幅調整するための配列
+
+                    // ベースIDごとの出現回数と逆順フラグを事前に計算
+                    const baseIdTotalCount = {};
+                    const baseIdReverseFlag = {};
+                    transfers.forEach(tId => {
+                        const baseId = tId.replace(/-$/, ""); // 末尾のマイナスを除去した本来のID
+                        baseIdTotalCount[baseId] = (baseIdTotalCount[baseId] || 0) + 1;
+                        if (tId.endsWith("-") && baseIdReverseFlag[baseId] === undefined) {
+                            baseIdReverseFlag[baseId] = true; // 1つでもマイナス指定があれば逆順モードにする
+                        }
+                    });
+
+                    // 描画した回数をカウントする用
+                    const baseIdDrawCount = {};
+
+                    transfers.forEach(targetId => {
+                        const baseId = targetId.replace(/-$/, "");
+                        
+                        let targetRawTexts = allStationsMaster.filter(raw => {
+                            const fullId = raw.split(" ")[0]; 
+                            return fullId === baseId && raw !== currentStationRawText;
+                        });
+
+                        if (targetRawTexts.length === 0) return;
+
+                        // 逆順指定がある場合は、ベースとなるリストを反転させる
+                        if (baseIdReverseFlag[baseId]) {
+                            targetRawTexts = [...targetRawTexts].reverse();
+                        }
+
+                        const total = baseIdTotalCount[baseId];
+                        const currentDrawIndex = baseIdDrawCount[baseId] || 0;
+
+                        let textsToDraw = [];
+                        if (total === 1) {
+                            // 単回指定の場合は、合致する全路線をまとめて表示
+                            textsToDraw = targetRawTexts;
+                        } else {
+                            // 複数回指定の場合は、何回目の呼び出しかに応じて該当する1路線だけを抽出して表示
+                            if (currentDrawIndex < targetRawTexts.length) {
+                                textsToDraw = [targetRawTexts[currentDrawIndex]];
+                            }
+                        }
+                        
+                        // 描画カウントを1進める
+                        baseIdDrawCount[baseId] = currentDrawIndex + 1;
+
+                        textsToDraw.forEach(targetRawText => {
+                            const targetData = parseStationData(targetRawText);
+                            
+                            // テーマカラー計算
+                            let colorCode = targetData.primaryCode;
+                            if (targetData.targetLine === "上野東京ライン") colorCode = "UTL";
+                            else {
+                                for (const key in lineInfo) {
+                                    if (lineInfo[key][1] === targetData.targetLine) { colorCode = key; break; }
+                                }
+                            }
+                            const themeColor = lineColors[colorCode] || "#888888";
+
+                            // 会社略称＋路線名の作成
+                            const abbr = companyAbbrDict[targetData.company] !== undefined ? companyAbbrDict[targetData.company] : targetData.company;
+                            let displayLineName = targetData.targetLine;
+                            if (abbr && !displayLineName.includes(abbr)) {
+                                displayLineName = abbr + displayLineName;
+                            }
+
+                            // 路線ロゴのHTML作成（全ての画像を個別の等幅コンテナに入れる）
+                            let lineLogoCodes = [];
+                            if (targetData.targetLine === "上野東京ライン") {
+                                lineLogoCodes = ["JT", "JU", "JJ"];
+                            } else {
+                                lineLogoCodes = [colorCode];
+                            }
+                            
+                            // 全体を囲むラッパーで、右側に固定の余白(6px)を作る
+                            let lineLogoHtml = `<div style="display: flex; gap: 2px; margin-right: 6px; flex-shrink: 0;">`;
+                            lineLogoCodes.forEach(code => {
+                                // 各画像を固定幅(28px)の中央に配置
+                                lineLogoHtml += `<div style="flex: 0 0 28px; display: flex; justify-content: center;"><img src="images/${code}.png" style="height: 24px; max-width: 100%; object-fit: contain;" onerror="this.style.display='none'"></div>`;
+                            });
+                            lineLogoHtml += `</div>`;
+
+                            // ナンバリング画像のHTML作成（全ての画像を個別の等幅コンテナに入れる）
+                            let numberingHtml = `<div style="display: flex; gap: 2px; margin-right: 4px; flex-shrink: 0;">`;
+                            targetData.ids.forEach(id => {
+                                // 各画像を固定幅(32px)の中央に配置
+                                numberingHtml += `<div style="flex: 0 0 32px; display: flex; justify-content: center;"><img src="images/${id.trim()}.png" style="height: 24px; max-width: none; object-fit: contain;" onerror="this.style.display='none'"></div>`;
+                            });
+                            numberingHtml += `</div>`;
+
+                            const btn = document.createElement("button");
+                            btn.style.cssText = `
+                                background-color: ${themeColor}1A;
+                                border: 1px solid ${themeColor};
+                                color: inherit;
+                                border-radius: 8px;
+                                padding: 8px 10px;
+                                cursor: pointer;
+                                transition: background-color 0.2s;
+                                width: 100%;
+                                display: block;
+                            `;
+                            
+                            // ボタン内部のレイアウト
+                            btn.innerHTML = `
+                                <div style="display: flex; align-items: center; width: 100%;">
+                                    <!-- 左側: 路線ロゴ ＆ 路線名 (45%の幅を確保) -->
+                                    <div style="display: flex; align-items: center; width: 45%; padding-right: 5px; box-sizing: border-box;">
+                                        ${lineLogoHtml}
+                                        <div style="flex: 1; overflow: hidden; text-align: left;">
+                                            <span class="transfer-text-adj" style="display: inline-block; white-space: nowrap; transform-origin: left center; font-size: 13px; font-weight: bold;">${displayLineName}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 右側: ナンバリング ＆ 駅名 (55%の幅) -->
+                                    <div style="display: flex; align-items: center; width: 55%; box-sizing: border-box;">
+                                        ${numberingHtml}
+                                        <div style="flex: 1; overflow: hidden; text-align: left;">
+                                            <span class="transfer-text-adj" style="display: inline-block; white-space: nowrap; transform-origin: left center; font-size: 15px; font-weight: bold;">${targetData.cleanName}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // ホバーエフェクト
+                            btn.addEventListener("mouseover", () => btn.style.backgroundColor = `${themeColor}33`);
+                            btn.addEventListener("mouseout", () => btn.style.backgroundColor = `${themeColor}1A`);
+
+                            // クリックでその駅にジャンプ
+                            btn.addEventListener("click", () => {
+                                updateDisplay(targetRawText, true);
+                            });
+
+                            btnBox.appendChild(btn);
+                            
+                            // 描画後に幅を長体(横圧縮)調整するため、要素を保存しておく
+                            const spans = btn.querySelectorAll(".transfer-text-adj");
+                            spans.forEach(span => textElementsToAdjust.push(span));
+                        });
+                    });
+
+                    return { btnBox, textElementsToAdjust };
+                };
+
+                if (isAlwaysShow) {
+                    const result = buildTransferButtons();
+                    transferContainer.appendChild(result.btnBox);
+                    
+                    setTimeout(() => {
+                        result.textElementsToAdjust.forEach(span => adjustTextWidth(span));
+                    }, 0);
+                } else {
+                    const details = document.createElement("details");
+                    details.className = "transfer-details";
+                    
+                    const summary = document.createElement("summary");
+                    summary.innerHTML = `<span style="font-weight: bold; cursor: pointer;">🚇 乗換案内を見る</span>`;
+                    summary.style.cssText = "outline: none; list-style: none;";
+                    
+                    const result = buildTransferButtons();
+                    
+                    details.appendChild(summary);
+                    details.appendChild(result.btnBox);
+                    transferContainer.appendChild(details);
+
+                    details.addEventListener("toggle", () => {
+                        if (details.open) {
+                            result.textElementsToAdjust.forEach(span => adjustTextWidth(span));
+                        }
+                    });
+                }
+            } else {
+                const noneDiv = document.createElement("div");
+                noneDiv.className = "melody-none";
+                noneDiv.textContent = "🚇 乗換路線なし";
+                transferContainer.appendChild(noneDiv);
+            }
+        }
 
         // 全駅のマスターリストを作成
         const allStationsMaster = [
@@ -3007,7 +4264,13 @@
         // =====================================
         // ★修正：画面更新関数（よみがな表示を追加）
         // =====================================
-        function updateDisplay(rawText) {
+        // =====================================
+        // ★修正：画面更新関数（2段ボタン動的入れ替え対応・完全版）
+        // =====================================
+        function updateDisplay(rawText, fromNav = false) {
+            // 更新される前の「今の駅ID」を記憶しておく
+            const originStationId = currentStationFullId;
+
             currentStationRawText = rawText;
             
             const { fullId, ids, primaryCode, company, targetLine, cleanName } = parseStationData(rawText);
@@ -3039,11 +4302,7 @@
                 stationNameTextEl.textContent = cleanName;
             }
 
-            // =====================================
-            // ★追加：よみがな辞書から取得して表示
-            // =====================================
             const yomiganaTextEl = document.getElementById("station-yomigana-text");
-            // 辞書からよみがなを取得（万が一無い場合は空欄にする）
             const yomigana = yomiganaDict[cleanName] || "";
             yomiganaTextEl.textContent = yomigana;
 
@@ -3051,14 +4310,13 @@
             let displayLineName = targetLine;
             if (abbr && targetLine.startsWith(abbr)) {
                 const slicedName = targetLine.slice(abbr.length);
-                if (slicedName !== "線" && slicedName !== "本線") {
+                if (slicedName !== "線" && slicedName !== "本線" && slicedName !== "新線") {
                     displayLineName = slicedName;
                 }
             }
             lineNameEl.textContent = displayLineName;
             companyNameEl.textContent = (company === displayLineName) ? "" : company;
 
-            // --- 長体処理（駅名） ---
             stationNameTextEl.style.transform = "none";
             const containerWidth = document.getElementById("station-text-container").clientWidth;
             const textWidth = stationNameTextEl.scrollWidth;
@@ -3067,9 +4325,6 @@
                 stationNameTextEl.style.transform = `scaleX(${scale})`;
             }
 
-            // =====================================
-            // ★追加：長体処理（よみがな）
-            // =====================================
             yomiganaTextEl.style.transform = "none";
             const yomiWidth = yomiganaTextEl.scrollWidth;
             if (yomiWidth > containerWidth) {
@@ -3103,33 +4358,116 @@
             }
             currentStationFullId = fullId;
             updateMelodyUI();
+            updateTransferUI();
+            updateJourneyAdviceUI();
 
+            // IDの取得（2段目用も追加）
             const prevBtn = document.getElementById("prev-station-btn");
             const nextBtn = document.getElementById("next-station-btn");
+            const prevBtn2 = document.getElementById("prev-station-btn-2");
+            const nextBtn2 = document.getElementById("next-station-btn-2");
 
             if (isSpinning) {
                 prevBtn.style.display = "none";
                 nextBtn.style.display = "none";
+                if(prevBtn2) prevBtn2.style.display = "none";
+                if(nextBtn2) nextBtn2.style.display = "none";
             } else {
                 let lineStations = allStationsMaster.filter(t => parseStationData(t).targetLine === targetLine);
                 lineStations.sort(sortStations);
                 const currentIndex = lineStations.indexOf(rawText);
+                
                 if (lineStations.length > 1) {
-                    const prevIndex = (currentIndex - 1 + lineStations.length) % lineStations.length;
-                    const nextIndex = (currentIndex + 1) % lineStations.length;
+                    let prevRaw = null;
+                    let nextRaw = null;
+                    let prevRaw2 = null; // 2段目用
+                    let nextRaw2 = null; // 2段目用
                     
-                    // ★修正：flexで表示する
-                    prevBtn.style.display = "flex";
-                    prevBtn.onclick = () => updateDisplay(lineStations[prevIndex]);
-                    
-                    nextBtn.style.display = "flex";
-                    nextBtn.onclick = () => updateDisplay(lineStations[nextIndex]);
+                    if (primaryCode === "E") {
+                        // ★大江戸線(E)の特例ロジック
+                        const eId = ids[0].split("-")[1]; 
+                        if (eId === "28") {
+                            // ナビゲーションボタン経由で、かつ光が丘(E-38)か新宿西口(E-01)から来たか判定
+                            const fromLoopEnd = fromNav && originStationId && (originStationId.includes("E-38") || originStationId.includes("E-01"));
 
-                    // ★追加：ボタン内のアイコンと駅名を更新する
-                    updateNavUI(lineStations[prevIndex], lineStations[nextIndex]);
+                            if (fromLoopEnd) {
+                                // 光が丘/新宿西口から来た場合：そちらを1段目（メイン）にする
+                                prevRaw = lineStations.find(t => t.startsWith("E-38"));
+                                nextRaw = lineStations.find(t => t.startsWith("E-01"));
+                                prevRaw2 = lineStations.find(t => t.startsWith("E-27"));
+                                nextRaw2 = lineStations.find(t => t.startsWith("E-29"));
+                            } else {
+                                // デフォルト（ルーレット、検索、または新宿/西新宿五丁目から来た場合）：新宿側を1段目にする
+                                prevRaw = lineStations.find(t => t.startsWith("E-27"));
+                                nextRaw = lineStations.find(t => t.startsWith("E-29"));
+                                prevRaw2 = lineStations.find(t => t.startsWith("E-38"));
+                                nextRaw2 = lineStations.find(t => t.startsWith("E-01"));
+                            }
+                        } else if (eId === "01") {
+                            // 新宿西口の特例（前を都庁前に繋ぐ）
+                            prevRaw = lineStations.find(t => t.startsWith("E-28"));
+                            nextRaw = lineStations.find(t => t.startsWith("E-02"));
+                        } else if (eId === "38") {
+                            // 光が丘の特例（次を都庁前に繋ぐ ＝ ループ仕様を維持）
+                            prevRaw = lineStations.find(t => t.startsWith("E-37"));
+                            nextRaw = lineStations.find(t => t.startsWith("E-28")); 
+                        } else {
+                            // その他は通常の番号順
+                            prevRaw = lineStations[currentIndex - 1] || null;
+                            nextRaw = lineStations[currentIndex + 1] || null;
+                        }
+                    } else {
+                        // ★その他の路線は、以前通りループさせる（終点⇔起点を繋ぐ）
+                        prevRaw = lineStations[(currentIndex - 1 + lineStations.length) % lineStations.length];
+                        nextRaw = lineStations[(currentIndex + 1) % lineStations.length];
+                    }
+
+                    // 1段目のボタン表示更新
+                    if (prevRaw) {
+                        prevBtn.style.display = "flex";
+                        prevBtn.onclick = () => updateDisplay(prevRaw, true); // フラグを追加
+                    } else {
+                        prevBtn.style.display = "none";
+                    }
+                    if (nextRaw) {
+                        nextBtn.style.display = "flex";
+                        nextBtn.onclick = () => updateDisplay(nextRaw, true); // フラグを追加
+                    } else {
+                        nextBtn.style.display = "none";
+                    }
+                    if (prevRaw || nextRaw) {
+                        updateNavUI(prevRaw, nextRaw, false);
+                    }
+                    
+                    // 2段目のボタン表示更新 (都庁前用)
+                    if (prevBtn2 && nextBtn2) {
+                        // ★大江戸線E-28以外では確実に2段目を隠す処理
+                        if (primaryCode === "E" && ids[0].split("-")[1] === "28") {
+                            if (prevRaw2) {
+                                prevBtn2.style.display = "flex";
+                                prevBtn2.onclick = () => updateDisplay(prevRaw2, true); // フラグを追加
+                            } else {
+                                prevBtn2.style.display = "none";
+                            }
+                            if (nextRaw2) {
+                                nextBtn2.style.display = "flex";
+                                nextBtn2.onclick = () => updateDisplay(nextRaw2, true); // フラグを追加
+                            } else {
+                                nextBtn2.style.display = "none";
+                            }
+                            if (prevRaw2 || nextRaw2) {
+                                updateNavUI(prevRaw2, nextRaw2, true);
+                            }
+                        } else {
+                            prevBtn2.style.display = "none";
+                            nextBtn2.style.display = "none";
+                        }
+                    }
                 } else {
                     prevBtn.style.display = "none";
                     nextBtn.style.display = "none";
+                    if(prevBtn2) prevBtn2.style.display = "none";
+                    if(nextBtn2) nextBtn2.style.display = "none";
                 }
             }
         } // <--- updateDisplay 関数の閉じカッコ
@@ -3220,6 +4558,33 @@
                 noneDiv.className = "melody-none";
                 noneDiv.textContent = "🎵 発車メロディなし";
                 melodyContainer.appendChild(noneDiv);
+            }
+        }
+
+        // =====================================
+        // ★ 旅モードUI更新 ＆ トグル連動システム
+        // =====================================
+        const journeyToggleEl = document.getElementById("journey-mode-toggle");
+
+        journeyToggleEl.addEventListener("change", updateJourneyAdviceUI);
+
+        function updateJourneyAdviceUI() {
+            const adviceContainer = document.getElementById("journey-advice-container");
+            adviceContainer.innerHTML = ""; // 一旦クリア
+
+            // 抽選中、またはIDがない、またはトグルがOFFの場合は表示しない
+            if (isSpinning || !currentStationFullId || !journeyToggleEl.checked) return;
+
+            const ids = currentStationFullId.split(",");
+            for (let id of ids) {
+                id = id.trim();
+                if (journeyAdvices[id]) {
+                    const adviceDiv = document.createElement("div");
+                    adviceDiv.className = "journey-advice";
+                    adviceDiv.textContent = journeyAdvices[id];
+                    adviceContainer.appendChild(adviceDiv);
+                    break; // 重複表示を防ぐため、1つ見つかったら抜ける
+                }
             }
         }
 
@@ -3386,42 +4751,50 @@
         });
 
         // =====================================
-        // ★ 修正：ナビゲーションボタンのUIを更新する関数（複数画像対応）
+        // ★ 修正：ナビゲーションUIを更新する関数（2段目対応版）
         // =====================================
-        function updateNavUI(prevRawText, nextRawText) {
+        function updateNavUI(prevRawText, nextRawText, isSecond = false) {
+            const suffix = isSecond ? "-2" : ""; // 2段目の場合はIDに "-2" を付与
+
             // --- 前の駅ボタンの更新 ---
-            const prevData = parseStationData(prevRawText);
-            const prevIconsContainer = document.getElementById("prevIcons");
-            prevIconsContainer.innerHTML = ""; // 中身を一度クリア
-            
-            // 複数のID（ナンバリング）をループして画像を生成
-            prevData.ids.forEach(id => {
-                const img = document.createElement("img");
-                img.src = `images/${id.trim()}.png`;
-                img.onerror = function() { this.style.display = 'none'; }; // 画像がない場合は非表示
-                prevIconsContainer.appendChild(img);
-            });
-            
-            const prevNameEl = document.getElementById("prevName");
-            prevNameEl.textContent = prevData.cleanName;
-            adjustTextWidth(prevNameEl);
+            if (prevRawText) {
+                const prevData = parseStationData(prevRawText);
+                const prevIconsContainer = document.getElementById("prevIcons" + suffix);
+                if (prevIconsContainer) {
+                    prevIconsContainer.innerHTML = "";
+                    prevData.ids.forEach(id => {
+                        const img = document.createElement("img");
+                        img.src = `images/${id.trim()}.png`;
+                        img.onerror = function() { this.style.display = 'none'; };
+                        prevIconsContainer.appendChild(img);
+                    });
+                }
+                const prevNameEl = document.getElementById("prevName" + suffix);
+                if (prevNameEl) {
+                    prevNameEl.textContent = prevData.cleanName;
+                    adjustTextWidth(prevNameEl);
+                }
+            }
 
             // --- 次の駅ボタンの更新 ---
-            const nextData = parseStationData(nextRawText);
-            const nextIconsContainer = document.getElementById("nextIcons");
-            nextIconsContainer.innerHTML = ""; // 中身を一度クリア
-            
-            // 複数のID（ナンバリング）をループして画像を生成
-            nextData.ids.forEach(id => {
-                const img = document.createElement("img");
-                img.src = `images/${id.trim()}.png`;
-                img.onerror = function() { this.style.display = 'none'; };
-                nextIconsContainer.appendChild(img);
-            });
-            
-            const nextNameEl = document.getElementById("nextName");
-            nextNameEl.textContent = nextData.cleanName;
-            adjustTextWidth(nextNameEl);
+            if (nextRawText) {
+                const nextData = parseStationData(nextRawText);
+                const nextIconsContainer = document.getElementById("nextIcons" + suffix);
+                if (nextIconsContainer) {
+                    nextIconsContainer.innerHTML = "";
+                    nextData.ids.forEach(id => {
+                        const img = document.createElement("img");
+                        img.src = `images/${id.trim()}.png`;
+                        img.onerror = function() { this.style.display = 'none'; };
+                        nextIconsContainer.appendChild(img);
+                    });
+                }
+                const nextNameEl = document.getElementById("nextName" + suffix);
+                if (nextNameEl) {
+                    nextNameEl.textContent = nextData.cleanName;
+                    adjustTextWidth(nextNameEl);
+                }
+            }
         }
 
         // ★テキストの横幅が親要素をはみ出す場合、文字幅(scaleX)を圧縮する関数
